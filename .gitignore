@@ -1,0 +1,38 @@
+# Dependencies
+
+node_modules/
+**/node_modules/
+
+# Build output
+
+dist/
+build/
+coverage/
+
+# Environment secrets
+
+.env
+.env.*
+!.env.example
+
+# Logs
+
+*.log
+npm-debug.log*
+
+# Operating system and editor files
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# TypeScript cache
+
+*.tsbuildinfo
+# Prisma tool files and local backups
+**/.agents/
+**/.claude/
+**/.cursor/
+**/.devin/
+backend/prisma.config.ts.old
