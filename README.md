@@ -1,12 +1,12 @@
-# Full-Stack Registration and Login System
+# Full-Stack Registration, Login and User Profile Management System
 
-A responsive full-stack web application developed as part of the Infynux Solutions internship Task 2. The application allows users to register and log in using a React frontend, NestJS backend, and PostgreSQL database.
+A responsive full-stack web application developed as part of the Infynux Solutions internship. The application allows users to register, log in, and manage their profiles using a React frontend, NestJS backend, and PostgreSQL database.
 
 ## Project Overview
 
-This project demonstrates the integration of frontend development, backend APIs, database operations, input validation, and authentication.
+This project demonstrates the integration of frontend development, backend APIs, database operations, input validation, and JWT-based authentication.
 
-Users can create an account using their name, email, and password, then log in with their registered credentials.
+Users can create an account using their name, email, and password, log in with their registered credentials, view their profile information, update their name, and log out.
 
 ## Technologies Used
 
@@ -25,7 +25,7 @@ Users can create an account using their name, email, and password, then log in w
 * Prisma ORM
 * PostgreSQL
 * bcrypt for password hashing
-* JWT for access-token generation
+* JWT for access-token generation and authentication
 
 ## Features
 
@@ -36,6 +36,10 @@ Users can create an account using their name, email, and password, then log in w
 * Duplicate-email detection
 * Password hashing using bcrypt
 * JWT access-token generation after successful login
+* JWT-protected user profile access
+* Retrieve and update user profile information
+* Backend validation for profile updates
+* Logout functionality
 * Loading, success, and error messages
 * PostgreSQL database integration
 * Password hashes excluded from API responses
@@ -53,7 +57,13 @@ Task2/
 │   │   │   ├── dto/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.module.ts
-│   │   │   └── auth.service.ts
+│   │   │   ├── auth.service.ts
+│   │   │   └── jwt-auth.guard.ts
+│   │   ├── users/
+│   │   │   ├── dto/
+│   │   │   ├── users.controller.ts
+│   │   │   ├── users.module.ts
+│   │   │   └── users.service.ts
 │   │   ├── prisma/
 │   │   ├── app.module.ts
 │   │   └── main.ts
@@ -156,10 +166,14 @@ Keep both development servers running while using the application.
 
 Base URL: `http://localhost:3000`
 
-| Method | Endpoint         | Description                     |
-| ------ | ---------------- | ------------------------------- |
-| POST   | `/auth/register` | Registers a new user            |
-| POST   | `/auth/login`    | Authenticates a registered user |
+| Method | Endpoint         | Description                                |
+| ------ | ---------------- | ------------------------------------------ |
+| POST   | `/auth/register` | Registers a new user                       |
+| POST   | `/auth/login`    | Authenticates a registered user            |
+| GET    | `/api/users/me`  | Retrieves the authenticated user's profile |
+| PATCH  | `/api/users/me`  | Updates the authenticated user's profile   |
+
+**Note:** The profile endpoints require a valid JWT access token.
 
 ### Registration
 
@@ -190,6 +204,18 @@ A successful login returns an access token and the user's safe profile informati
 
 The backend rejects invalid credentials and does not return the stored password hash.
 
+### Retrieve User Profile
+
+The `GET /api/users/me` endpoint retrieves the profile of the currently authenticated user.
+
+The backend verifies the JWT access token and identifies the user from the token.
+
+### Update User Profile
+
+The `PATCH /api/users/me` endpoint allows the authenticated user to update their profile name.
+
+The backend validates the submitted data before updating the user's record.
+
 ## Validation and Error Handling
 
 The application handles:
@@ -199,6 +225,8 @@ The application handles:
 * Password confirmation mismatches during registration
 * Duplicate email addresses
 * Incorrect login credentials
+* Missing or invalid authentication tokens
+* Invalid profile update data
 * Loading and API error states
 
 ## Testing
@@ -212,6 +240,10 @@ The following scenarios were tested during development:
 * Incorrect password rejection
 * Database storage of user records
 * Password hashing and exclusion of password hashes from API responses
+* Successful profile retrieval
+* Successful profile name update
+* Protected profile access using JWT authentication
+* Logout functionality
 * Successful backend production build
 * Successful frontend production build
 
@@ -219,6 +251,8 @@ The following scenarios were tested during development:
 
 * Passwords are hashed using bcrypt before being stored.
 * JWT access tokens are generated after successful login.
+* Profile endpoints require valid authentication.
+* The authenticated user is identified using the verified JWT.
 * Database credentials and JWT secrets must be configured locally.
 * The actual `.env` file is excluded from version control.
 
