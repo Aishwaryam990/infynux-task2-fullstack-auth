@@ -1,48 +1,49 @@
-# Full-Stack Registration, Login and User Profile Management System
+# Full-Stack Authentication and User Profile Management
 
-A responsive full-stack web application developed as part of the Infynux Solutions internship. The application allows users to register, log in, and manage their profiles using a React frontend, NestJS backend, and PostgreSQL database.
+## Overview
 
-## Project Overview
+This project is a React, NestJS, and PostgreSQL application developed during the Infynux Solutions internship. This improvement assignment focuses on code quality, input validation, authentication security, configuration management, automated testing, and production readiness.
 
-This project demonstrates the integration of frontend development, backend APIs, database operations, input validation, and JWT-based authentication.
+## Technology Stack
 
-Users can create an account using their name, email, and password, log in with their registered credentials, view their profile information, update their name, and log out.
-
-## Technologies Used
-
-### Frontend
-
-* React
-* Vite
-* HTML
-* CSS
-* JavaScript
-
-### Backend
-
-* NestJS
-* TypeScript
-* Prisma ORM
-* PostgreSQL
-* bcrypt for password hashing
-* JWT for access-token generation and authentication
+* Frontend: React and Vite
+* Backend: NestJS and TypeScript
+* Database: PostgreSQL
+* ORM: Prisma
+* Password hashing: bcrypt
+* Authentication: JSON Web Tokens (JWT)
+* Validation: class-validator and class-transformer
+* Automated testing: Jest
+* Request rate limiting: @nestjs/throttler
 
 ## Features
 
 * User registration and login
-* Responsive interface for desktop and mobile devices
-* Required-field and email-format validation
-* Password confirmation during registration
-* Duplicate-email detection
+* Email normalization and validation
 * Password hashing using bcrypt
-* JWT access-token generation after successful login
-* JWT-protected user profile access
-* Retrieve and update user profile information
-* Backend validation for profile updates
-* Logout functionality
+* Duplicate-email detection
+* JWT-based authentication
+* Protected user profile retrieval and updates
+* Profile updates restricted to the authenticated user
+* Backend request validation
+* Environment-based configuration
+* Global API rate limiting
 * Loading, success, and error messages
-* PostgreSQL database integration
-* Password hashes excluded from API responses
+* Responsive React interface
+* Automated unit tests for authentication and JWT guard behavior
+
+## Security Improvements
+
+* The application validates required environment configuration at startup.
+* JWT signing uses the JWT_SECRET environment variable.
+* JWT access tokens have a 15-minute expiration.
+* Registration validates the name, email, and password.
+* Passwords are hashed before being stored.
+* The JWT guard verifies the token and checks that the user still exists in the database.
+* Profile routes require authentication and use the authenticated user's identity.
+* The global validation pipe should reject unexpected request properties.
+* Global rate limiting is configured to allow up to 10 requests per 60-second window, subject to the application's throttler storage and deployment configuration.
+* Environment files containing secrets must not be committed to Git.
 
 ## Project Structure
 
@@ -50,32 +51,24 @@ Users can create an account using their name, email, and password, log in with t
 Task2/
 ├── backend/
 │   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
 │   ├── src/
 │   │   ├── auth/
 │   │   │   ├── dto/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.service.ts
-│   │   │   └── jwt-auth.guard.ts
+│   │   │   ├── auth.service.spec.ts
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── jwt-auth.guard.spec.ts
 │   │   ├── users/
-│   │   │   ├── dto/
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.module.ts
-│   │   │   └── users.service.ts
 │   │   ├── prisma/
 │   │   ├── app.module.ts
 │   │   └── main.ts
 │   ├── .env.example
 │   └── package.json
 ├── frontend/
-│   ├── public/
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
+│   ├── .env.example
 │   └── package.json
 ├── .gitignore
 └── README.md
@@ -83,24 +76,20 @@ Task2/
 
 ## Prerequisites
 
-Install the following before running the application:
-
 * Node.js and npm
 * PostgreSQL
-* Git (optional, for cloning the repository)
+* Git
 
-## Getting Started
+## Setup
 
-### 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Aishwaryam990/infynux-task2-fullstack-auth.git
 cd infynux-task2-fullstack-auth
 ```
 
-### 2. Configure the Backend
-
-Open a terminal in the project root and run:
+### 2. Configure the backend
 
 ```bash
 cd backend
@@ -109,159 +98,130 @@ npm install
 
 Create a local `.env` file from the example.
 
-**Windows PowerShell:**
+Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Open `backend/.env` and configure these environment variables using your own values:
+Configure these variables in `backend/.env`:
 
-* `DATABASE_URL`: PostgreSQL connection string for your database.
-* `JWT_SECRET`: A long, randomly generated secret used to sign access tokens.
+* `DATABASE_URL`: PostgreSQL connection string.
+* `JWT_SECRET`: A securely generated secret containing at least 32 characters.
 
-Create the PostgreSQL database specified in your connection string before running the migrations.
+Create the database specified by `DATABASE_URL` before running migrations.
 
-**Important:** Keep your actual `.env` file private. Never upload database passwords or JWT secrets to GitHub.
+### 3. Apply database migrations
 
-### 3. Run Database Migrations
-
-From the `backend` directory, run:
+From the backend directory:
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate deploy
+npx prisma generate
 ```
 
-This applies the existing Prisma migrations to your configured PostgreSQL database.
+For a new development database where a development migration needs to be created, use the Prisma development migration workflow instead.
 
-### 4. Start the Backend Server
+### 4. Start the backend
 
-From the `backend` directory, run:
+From the backend directory:
 
 ```bash
 npm run start:dev
 ```
 
-The backend runs at:
+The backend normally runs at `http://localhost:3000`.
 
-`http://localhost:3000`
+### 5. Configure the frontend
 
-### 5. Start the Frontend
-
-Open a second terminal in the project root and run:
+Open a second terminal:
 
 ```bash
 cd frontend
 npm install
+```
+
+Create the frontend environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Set the API URL in `frontend/.env`:
+
+```text
+VITE_API_URL=http://localhost:3000
+```
+
+### 6. Start the frontend
+
+From the frontend directory:
+
+```bash
 npm run dev
 ```
 
-Open the local development URL displayed by Vite. By default, it is:
+Open the local URL displayed by Vite, normally `http://localhost:5173`.
 
-`http://localhost:5173`
-
-Keep both development servers running while using the application.
+Keep both servers running while testing the application.
 
 ## API Endpoints
 
-Base URL: `http://localhost:3000`
+| Method | Endpoint         | Description                               |
+| ------ | ---------------- | ----------------------------------------- |
+| POST   | `/auth/register` | Register a user                           |
+| POST   | `/auth/login`    | Authenticate a user                       |
+| GET    | `/api/users/me`  | Retrieve the authenticated user's profile |
+| PATCH  | `/api/users/me`  | Update the authenticated user's profile   |
 
-| Method | Endpoint         | Description                                |
-| ------ | ---------------- | ------------------------------------------ |
-| POST   | `/auth/register` | Registers a new user                       |
-| POST   | `/auth/login`    | Authenticates a registered user            |
-| GET    | `/api/users/me`  | Retrieves the authenticated user's profile |
-| PATCH  | `/api/users/me`  | Updates the authenticated user's profile   |
+Profile endpoints require a valid JWT access token.
 
-**Note:** The profile endpoints require a valid JWT access token.
+## Automated Tests
 
-### Registration
+The backend unit tests cover:
 
-Example request body:
-
-```json
-{
-  "name": "Test User",
-  "email": "testuser@example.com",
-  "password": "TestPass123!"
-}
-```
-
-A successful registration creates a user record and returns the user's safe profile information.
-
-### Login
-
-Example request body:
-
-```json
-{
-  "email": "testuser@example.com",
-  "password": "TestPass123!"
-}
-```
-
-A successful login returns an access token and the user's safe profile information.
-
-The backend rejects invalid credentials and does not return the stored password hash.
-
-### Retrieve User Profile
-
-The `GET /api/users/me` endpoint retrieves the profile of the currently authenticated user.
-
-The backend verifies the JWT access token and identifies the user from the token.
-
-### Update User Profile
-
-The `PATCH /api/users/me` endpoint allows the authenticated user to update their profile name.
-
-The backend validates the submitted data before updating the user's record.
-
-## Validation and Error Handling
-
-The application handles:
-
-* Missing required fields
-* Invalid email addresses
-* Password confirmation mismatches during registration
-* Duplicate email addresses
-* Incorrect login credentials
-* Missing or invalid authentication tokens
-* Invalid profile update data
-* Loading and API error states
-
-## Testing
-
-The following scenarios were tested during development:
-
-* Successful registration
+* Successful registration and password hashing
 * Duplicate registration rejection
-* Invalid input rejection
 * Successful login
-* Incorrect password rejection
-* Database storage of user records
-* Password hashing and exclusion of password hashes from API responses
-* Successful profile retrieval
-* Successful profile name update
-* Protected profile access using JWT authentication
-* Logout functionality
-* Successful backend production build
-* Successful frontend production build
+* Rejection of unknown email addresses
+* Rejection of incorrect passwords
+* Missing authentication headers
+* Malformed authorization headers
+* Invalid or expired JWTs
+* Rejection when the token's user no longer exists
+* Acceptance of a valid token for an existing user
 
-## Security Notes
+Run the backend build and tests from the `backend` directory:
 
-* Passwords are hashed using bcrypt before being stored.
-* JWT access tokens are generated after successful login.
-* Profile endpoints require valid authentication.
-* The authenticated user is identified using the verified JWT.
-* Database credentials and JWT secrets must be configured locally.
-* The actual `.env` file is excluded from version control.
+```bash
+npm run build
+npm test -- --runInBand
+```
+
+Run frontend checks from the `frontend` directory:
+
+```bash
+npm run build
+npm run lint
+```
+
+Only report the checks as passing after executing them successfully.
+
+## Limitations and Further Improvements
+
+* Current unit tests use mocks for authentication dependencies; they do not replace end-to-end tests against a real PostgreSQL database.
+* Rate limiting and authentication should be tested in the intended deployment environment.
+* Production deployment should use HTTPS, secure secret management, appropriate CORS settings, and monitoring.
+* Distributed deployments may require shared rate-limit storage.
+* Dependency audit findings should be reviewed and resolved without applying potentially breaking upgrades blindly.
+* Further tests should cover DTO validation, profile authorization, rate limiting, and database integration.
+
+## Environment Security
+
+Never commit `.env` files, database passwords, or JWT secrets. Use `.env.example` to document the required configuration without exposing real credentials.
 
 ## Author
 
-**Aishwarya M.**
+Aishwarya M.
 
 Developed as part of the Infynux Solutions internship.
-
-## Repository
-
-[View the GitHub Repository](https://github.com/Aishwaryam990/infynux-task2-fullstack-auth)
