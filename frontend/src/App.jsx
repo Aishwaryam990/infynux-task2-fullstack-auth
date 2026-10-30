@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import './App.css';
+import CompanyPortal from './components/CompanyPortal';
 
-const AUTH_API = 'http://localhost:3000/auth';
-const PROFILE_API = 'http://localhost:3000/api/users/me';
+const API_URL = import.meta.env.VITE_API_URL;
+
+if (!API_URL) {
+throw new Error('VITE_API_URL is not configured.');
+}
+const BASE_API_URL = API_URL.replace(/\/+$/, '');
+const AUTH_API = `${BASE_API_URL}/auth`;
+const PROFILE_API = `${BASE_API_URL}/api/users/me`;
 
 const emptyForm = {
 name: '',
@@ -12,6 +19,9 @@ confirmPassword: '',
 };
 
 function App() {
+const [portal, setPortal] = useState(() =>
+  sessionStorage.getItem('companyAccessToken') ? 'company' : 'personal'
+);
 const [page, setPage] = useState('login');
 const [showPassword, setShowPassword] = useState(false);
 const [loading, setLoading] = useState(false);
@@ -27,27 +37,6 @@ const [editName, setEditName] = useState('');
 const [profileLoading, setProfileLoading] = useState(false);
 const [savingProfile, setSavingProfile] = useState(false);
 
-useEffect(() => {
-if (token) {
-loadProfile(token);
-}
-}, [token]);
-
-function changePage(nextPage) {
-setPage(nextPage);
-setMessage('');
-setError('');
-setShowPassword(false);
-setForm(emptyForm);
-}
-
-function handleChange(event) {
-setForm((previous) => ({
-...previous,
-[event.target.name]: event.target.value,
-}));
-}
-
 async function readResponse(response) {
 const data = await response.json().catch(() => ({}));
 
@@ -62,6 +51,84 @@ if (!response.ok) {
 
 return data;
 
+}
+
+function logout(showMessage = true) {
+sessionStorage.removeItem('accessToken');
+setToken('');
+setProfile(null);
+setEditName('');
+setForm(emptyForm);
+setPage('login');
+setShowPassword(false);
+setError('');
+setMessage(showMessage ? 'You have been logged out.' : '');
+}
+
+const loadProfile = useCallback(
+async (currentToken = token) => {
+if (!currentToken) return;
+
+  setProfileLoading(true);
+  setError('');
+  setMessage('');
+
+  try {
+    const response = await fetch(PROFILE_API, {
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+
+    const data = await readResponse(response);
+    setProfile(data.user);
+    setEditName(data.user.name);
+  } catch (err) {
+    if (
+      err.message.toLowerCase().includes('token') ||
+      err.message.toLowerCase().includes('authentication') ||
+      err.message.toLowerCase().includes('unauthorized')
+    ) {
+      logout(false);
+      setError('Your session has expired. Please log in again.');
+    } else {
+      setError(
+        err.message === 'Failed to fetch'
+          ? 'Cannot connect to the server. Please ensure the backend is running.'
+          : err.message,
+      );
+    }
+  } finally {
+    setProfileLoading(false);
+  }
+},
+[token],
+
+);
+
+useEffect(() => {
+  if (!token) return;
+
+  const timer = setTimeout(() => {
+    void loadProfile(token);
+  }, 0);
+
+  return () => clearTimeout(timer);
+}, [token, loadProfile]);
+
+function changePage(nextPage) {
+setPage(nextPage);
+setMessage('');
+setError('');
+setShowPassword(false);
+setForm(emptyForm);
+}
+
+function handleChange(event) {
+setForm((previous) => ({
+...previous,
+[event.target.name]: event.target.value,
+}));
 }
 
 async function handleSubmit(event) {
@@ -96,8 +163,7 @@ if (page === 'register') {
 setLoading(true);
 
 try {
-  const endpoint =
-    page === 'register' ? '/register' : '/login';
+  const endpoint = page === 'register' ? '/register' : '/login';
 
   const payload =
     page === 'register'
@@ -148,43 +214,6 @@ try {
 
 }
 
-async function loadProfile(currentToken = token) {
-if (!currentToken) return;
-
-setProfileLoading(true);
-setError('');
-setMessage('');
-
-try {
-  const response = await fetch(PROFILE_API, {
-    headers: {
-      Authorization: `Bearer ${currentToken}`,
-    },
-  });
-
-  const data = await readResponse(response);
-  setProfile(data.user);
-  setEditName(data.user.name);
-} catch (err) {
-  if (
-    err.message.includes('token') ||
-    err.message.includes('Authentication')
-  ) {
-    logout(false);
-    setError('Your session has expired. Please log in again.');
-  } else {
-    setError(
-      err.message === 'Failed to fetch'
-        ? 'Cannot connect to the server. Please ensure the backend is running.'
-        : err.message,
-    );
-  }
-} finally {
-  setProfileLoading(false);
-}
-
-}
-
 async function saveProfile(event) {
 event.preventDefault();
 setError('');
@@ -230,16 +259,8 @@ try {
 
 }
 
-function logout(showMessage = true) {
-sessionStorage.removeItem('accessToken');
-setToken('');
-setProfile(null);
-setEditName('');
-setForm(emptyForm);
-setPage('login');
-setShowPassword(false);
-setError('');
-setMessage(showMessage ? 'You have been logged out.' : '');
+if (portal === 'company') {
+  return <CompanyPortal onBack={() => setPortal('personal')} />;
 }
 
 if (token) {
@@ -255,19 +276,24 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
         <p>Manage your personal account details securely.</p>
 
         <div className="feature-list">
-          <div>✓ Protected profile access</div>
-          <div>✓ Secure account updates</div>
-          <div>✓ Session-based login</div>
+          <div>âœ“ Protected profile access</div>
+          <div>âœ“ Secure account updates</div>
+          <div>âœ“ Session-based login</div>
         </div>
       </div>
 
-      <p className="copyright">
-        © 2026 AuthSpace · Full Stack Project
-      </p>
+      <p className="copyright">Â© 2026 AuthSpace Â· Full Stack Project</p>
     </section>
 
     <section className="form-panel">
       <div className="form-wrapper">
+<button
+  type="button"
+  className="portal-switch-button"
+  onClick={() => setPortal('company')}
+>
+  Company Portal →
+</button>
         <div className="mobile-brand">
           <div className="brand-icon">A</div>
           <span>AuthSpace</span>
@@ -296,13 +322,17 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
         ) : profile ? (
           <>
             <div className="input-group">
-              <label>Account ID</label>
-              <input value={profile.id} readOnly />
+              <label htmlFor="accountId">Account ID</label>
+              <input id="accountId" value={profile.id} readOnly />
             </div>
 
             <div className="input-group">
-              <label>Email Address</label>
-              <input value={profile.email} readOnly />
+              <label htmlFor="profileEmail">Email Address</label>
+              <input
+                id="profileEmail"
+                value={profile.email}
+                readOnly
+              />
             </div>
 
             <form onSubmit={saveProfile}>
@@ -320,8 +350,9 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
               </div>
 
               <div className="input-group">
-                <label>Account Created</label>
+                <label htmlFor="accountCreated">Account Created</label>
                 <input
+                  id="accountCreated"
                   value={
                     profile.createdAt
                       ? new Date(profile.createdAt).toLocaleString()
@@ -375,7 +406,6 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
 
 return ( <main className="app-container"> <section className="intro-panel"> <div className="brand"> <div className="brand-icon">A</div> <span>AuthSpace</span> </div>
 
-
     <div className="intro-content">
       <span className="eyebrow">YOUR SPACE. YOUR ACCOUNT.</span>
       <h1>
@@ -386,24 +416,29 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
         <span>digital life.</span>
       </h1>
       <p>
-        Create your account or sign in to continue.
-        Your journey starts here.
+        Create your account or sign in to continue. Your journey starts
+        here.
       </p>
 
       <div className="feature-list">
-        <div>✓ Secure password hashing</div>
-        <div>✓ Easy account management</div>
-        <div>✓ Simple and responsive design</div>
+        <div>âœ“ Secure password hashing</div>
+        <div>âœ“ Easy account management</div>
+        <div>âœ“ Simple and responsive design</div>
       </div>
     </div>
 
-    <p className="copyright">
-      © 2026 AuthSpace · Full Stack Project
-    </p>
+    <p className="copyright">Â© 2026 AuthSpace Â· Full Stack Project</p>
   </section>
 
   <section className="form-panel">
     <div className="form-wrapper">
+<button
+  type="button"
+  className="portal-switch-button"
+  onClick={() => setPortal('company')}
+>
+  Company Portal →
+</button>
       <div className="mobile-brand">
         <div className="brand-icon">A</div>
         <span>AuthSpace</span>
@@ -500,7 +535,7 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
             <button
               type="button"
               className="show-password"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowPassword((previous) => !previous)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? 'Hide' : 'Show'}
@@ -567,7 +602,9 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
     </div>
   </section>
 </main>
+
 );
 }
 
 export default App;
+

@@ -356,3 +356,20 @@ button {
     margin-top: 25px;
   }
 }
+.portal-switch-button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 22px;
+  color: #41418f;
+  background: #eeeeff;
+  border: 1px solid #dadaff;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: 0.2s;
+}
+
+.portal-switch-button:hover {
+  background: #e1e1ff;
+  transform: translateY(-1px);
+}

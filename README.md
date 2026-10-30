@@ -1,48 +1,109 @@
-# Full-Stack Registration, Login and User Profile Management System
+# Full-Stack Authentication, User Profile Management & Company Dashboard
 
-A responsive full-stack web application developed as part of the Infynux Solutions internship. The application allows users to register, log in, and manage their profiles using a React frontend, NestJS backend, and PostgreSQL database.
+## Overview
 
-## Project Overview
+This project is a React, NestJS, and PostgreSQL application developed during the Infynux Solutions internship.
 
-This project demonstrates the integration of frontend development, backend APIs, database operations, input validation, and JWT-based authentication.
+The application provides personal user registration, login, profile management, and a separate company registration and authentication system with a protected company dashboard.
 
-Users can create an account using their name, email, and password, log in with their registered credentials, view their profile information, update their name, and log out.
+The project focuses on secure authentication, input validation, database integration, access control, responsive user interfaces, and production readiness.
 
-## Technologies Used
+## Technology Stack
 
-### Frontend
-
-* React
-* Vite
-* HTML
-* CSS
-* JavaScript
-
-### Backend
-
-* NestJS
-* TypeScript
-* Prisma ORM
-* PostgreSQL
-* bcrypt for password hashing
-* JWT for access-token generation and authentication
+* Frontend: React and Vite
+* Backend: NestJS and TypeScript
+* Database: PostgreSQL
+* ORM: Prisma
+* Password hashing: bcrypt
+* Authentication: JSON Web Tokens (JWT)
+* Validation: class-validator and class-transformer
+* Automated testing: Jest
+* Request rate limiting: @nestjs/throttler
 
 ## Features
 
-* User registration and login
-* Responsive interface for desktop and mobile devices
-* Required-field and email-format validation
-* Password confirmation during registration
-* Duplicate-email detection
-* Password hashing using bcrypt
-* JWT access-token generation after successful login
-* JWT-protected user profile access
-* Retrieve and update user profile information
-* Backend validation for profile updates
-* Logout functionality
-* Loading, success, and error messages
-* PostgreSQL database integration
-* Password hashes excluded from API responses
+### 1. Personal User Authentication
+
+* User registration and login.
+* Email normalization and validation.
+* Password hashing using bcrypt.
+* Duplicate-email detection.
+* JWT-based authentication.
+* Protected user profile retrieval and updates.
+* Profile updates restricted to the authenticated user.
+
+### 2. User Profile Management
+
+* Retrieve personal account information.
+* Update profile information.
+* Display account details from the database.
+* Protected profile routes.
+
+### 3. Company Registration and Authentication
+
+* Company registration with:
+
+  * Company name
+  * Company email
+  * Unique company username
+  * Password
+  * Confirm password
+* Frontend and backend input validation.
+* Password confirmation validation.
+* Unique email and username checks.
+* Duplicate company registration prevention.
+* Secure password hashing using bcrypt.
+* Company login using database credentials.
+* JWT-based company authentication.
+* Generic invalid-credentials error messages.
+
+### 4. Company Dashboard
+
+* Protected company dashboard.
+* Company-specific workspace.
+* Company information retrieved from PostgreSQL.
+* Dashboard displays:
+
+  * Company name
+  * Company email
+  * Company username
+  * Account creation date
+* Dashboard navigation:
+
+  * Home
+  * Members
+  * Posts
+  * Settings
+* Initial Members and Posts placeholder sections.
+* Company logout functionality.
+* Session persistence across browser refreshes.
+
+### 5. Security and Access Control
+
+* Separate authentication for personal users and companies.
+* JWT token type verification.
+* Protected API routes.
+* Company dashboard access restricted to the authenticated company.
+* Personal and company authentication isolation.
+* Environment-based configuration.
+* Global API request rate limiting.
+
+## Security Improvements
+
+* The application validates required environment configuration at startup.
+* JWT signing uses the `JWT_SECRET` environment variable.
+* JWT access tokens have a 15-minute expiration.
+* Passwords are hashed before being stored in PostgreSQL.
+* Registration validates user and company information.
+* Duplicate email and company username registrations are rejected.
+* Authentication guards verify JWT tokens and check the corresponding database records.
+* Personal-user tokens cannot access company-protected routes.
+* Company tokens cannot access personal-user protected routes.
+* Profile routes use the authenticated user's identity.
+* Company dashboard routes use the authenticated company's identity.
+* The global validation pipe rejects unexpected request properties.
+* Global rate limiting is configured to allow up to 10 requests per 60-second window, subject to the application's throttler storage and deployment configuration.
+* Environment files containing secrets must not be committed to Git.
 
 ## Project Structure
 
@@ -58,24 +119,33 @@ Task2/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.service.ts
-│   │   │   └── jwt-auth.guard.ts
-│   │   ├── users/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── auth.service.spec.ts
+│   │   ├── companies/
 │   │   │   ├── dto/
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.module.ts
-│   │   │   └── users.service.ts
+│   │   │   │   ├── company-login.dto.ts
+│   │   │   │   └── company-register.dto.ts
+│   │   │   ├── company-auth.controller.ts
+│   │   │   ├── company-auth.guard.ts
+│   │   │   ├── company-auth.module.ts
+│   │   │   ├── company-auth.service.ts
+│   │   │   ├── company.controller.ts
+│   │   │   └── company.service.ts
+│   │   ├── users/
 │   │   ├── prisma/
 │   │   ├── app.module.ts
 │   │   └── main.ts
 │   ├── .env.example
 │   └── package.json
 ├── frontend/
-│   ├── public/
 │   ├── src/
+│   │   ├── components/
+│   │   │   ├── CompanyPortal.jsx
+│   │   │   └── CompanyPortal.css
 │   │   ├── App.jsx
 │   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
+│   │   └── index.css
+│   ├── .env.example
 │   └── package.json
 ├── .gitignore
 └── README.md
@@ -83,13 +153,11 @@ Task2/
 
 ## Prerequisites
 
-Install the following before running the application:
-
 * Node.js and npm
 * PostgreSQL
-* Git (optional, for cloning the repository)
+* Git
 
-## Getting Started
+## Setup
 
 ### 1. Clone the Repository
 
@@ -100,8 +168,6 @@ cd infynux-task2-fullstack-auth
 
 ### 2. Configure the Backend
 
-Open a terminal in the project root and run:
-
 ```bash
 cd backend
 npm install
@@ -109,159 +175,167 @@ npm install
 
 Create a local `.env` file from the example.
 
-**Windows PowerShell:**
+Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Open `backend/.env` and configure these environment variables using your own values:
+Configure these variables in `backend/.env`:
 
-* `DATABASE_URL`: PostgreSQL connection string for your database.
-* `JWT_SECRET`: A long, randomly generated secret used to sign access tokens.
+* `DATABASE_URL`: PostgreSQL connection string.
+* `JWT_SECRET`: A securely generated secret containing at least 32 characters.
 
-Create the PostgreSQL database specified in your connection string before running the migrations.
+Create the PostgreSQL database specified by `DATABASE_URL` before running migrations.
 
-**Important:** Keep your actual `.env` file private. Never upload database passwords or JWT secrets to GitHub.
+### 3. Apply Database Migrations
 
-### 3. Run Database Migrations
-
-From the `backend` directory, run:
+From the backend directory:
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate deploy
+npx prisma generate
 ```
 
-This applies the existing Prisma migrations to your configured PostgreSQL database.
+For a new development database where a development migration needs to be created, use the Prisma development migration workflow instead.
 
-### 4. Start the Backend Server
+### 4. Start the Backend
 
-From the `backend` directory, run:
+From the backend directory:
 
 ```bash
 npm run start:dev
 ```
 
-The backend runs at:
+The backend normally runs at:
 
-`http://localhost:3000`
+```text
+http://localhost:3000
+```
 
-### 5. Start the Frontend
+### 5. Configure the Frontend
 
-Open a second terminal in the project root and run:
+Open a second terminal:
 
 ```bash
 cd frontend
 npm install
+```
+
+Create the frontend environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Set the API URL in `frontend/.env`:
+
+```text
+VITE_API_URL=http://localhost:3000
+```
+
+### 6. Start the Frontend
+
+From the frontend directory:
+
+```bash
 npm run dev
 ```
 
-Open the local development URL displayed by Vite. By default, it is:
+Open the local URL displayed by Vite, normally:
 
-`http://localhost:5173`
+```text
+http://localhost:5173
+```
 
-Keep both development servers running while using the application.
+Keep both servers running while testing the application.
 
 ## API Endpoints
 
-Base URL: `http://localhost:3000`
+### Personal User Authentication
 
-| Method | Endpoint         | Description                                |
-| ------ | ---------------- | ------------------------------------------ |
-| POST   | `/auth/register` | Registers a new user                       |
-| POST   | `/auth/login`    | Authenticates a registered user            |
-| GET    | `/api/users/me`  | Retrieves the authenticated user's profile |
-| PATCH  | `/api/users/me`  | Updates the authenticated user's profile   |
+| Method | Endpoint         | Description                               |
+| ------ | ---------------- | ----------------------------------------- |
+| POST   | `/auth/register` | Register a personal user                  |
+| POST   | `/auth/login`    | Authenticate a personal user              |
+| GET    | `/api/users/me`  | Retrieve the authenticated user's profile |
+| PATCH  | `/api/users/me`  | Update the authenticated user's profile   |
 
-**Note:** The profile endpoints require a valid JWT access token.
+### Company Authentication and Dashboard
 
-### Registration
+| Method | Endpoint                       | Description                                    |
+| ------ | ------------------------------ | ---------------------------------------------- |
+| POST   | `/api/companies/auth/register` | Register a company                             |
+| POST   | `/api/companies/auth/login`    | Authenticate a company                         |
+| GET    | `/api/companies/dashboard`     | Retrieve the authenticated company's dashboard |
 
-Example request body:
+The company dashboard endpoint requires a valid company JWT access token.
 
-```json
-{
-  "name": "Test User",
-  "email": "testuser@example.com",
-  "password": "TestPass123!"
-}
-```
-
-A successful registration creates a user record and returns the user's safe profile information.
-
-### Login
-
-Example request body:
-
-```json
-{
-  "email": "testuser@example.com",
-  "password": "TestPass123!"
-}
-```
-
-A successful login returns an access token and the user's safe profile information.
-
-The backend rejects invalid credentials and does not return the stored password hash.
-
-### Retrieve User Profile
-
-The `GET /api/users/me` endpoint retrieves the profile of the currently authenticated user.
-
-The backend verifies the JWT access token and identifies the user from the token.
-
-### Update User Profile
-
-The `PATCH /api/users/me` endpoint allows the authenticated user to update their profile name.
-
-The backend validates the submitted data before updating the user's record.
-
-## Validation and Error Handling
-
-The application handles:
-
-* Missing required fields
-* Invalid email addresses
-* Password confirmation mismatches during registration
-* Duplicate email addresses
-* Incorrect login credentials
-* Missing or invalid authentication tokens
-* Invalid profile update data
-* Loading and API error states
+Personal-user and company authentication use separate token types and protected routes.
 
 ## Testing
 
-The following scenarios were tested during development:
+### Backend Checks
 
-* Successful registration
-* Duplicate registration rejection
-* Invalid input rejection
-* Successful login
-* Incorrect password rejection
-* Database storage of user records
-* Password hashing and exclusion of password hashes from API responses
-* Successful profile retrieval
-* Successful profile name update
-* Protected profile access using JWT authentication
-* Logout functionality
-* Successful backend production build
-* Successful frontend production build
+Run the following commands from the backend directory:
 
-## Security Notes
+```bash
+npm run lint
+npm run build
+npm test -- --runInBand
+```
 
-* Passwords are hashed using bcrypt before being stored.
-* JWT access tokens are generated after successful login.
-* Profile endpoints require valid authentication.
-* The authenticated user is identified using the verified JWT.
-* Database credentials and JWT secrets must be configured locally.
-* The actual `.env` file is excluded from version control.
+The backend unit tests cover authentication and JWT guard behavior.
+
+### Frontend Production Build
+
+Run from the frontend directory:
+
+```bash
+npm run build
+```
+
+### Company Authentication and Dashboard Verification
+
+The following functional checks were performed:
+
+* Company registration.
+* Successful company login.
+* Duplicate company registration rejection.
+* Protected company dashboard access.
+* Dashboard information retrieved from the database.
+* Dashboard navigation.
+* Session persistence after browser refresh.
+* Company logout.
+* Personal-user token rejected by the company dashboard API.
+* Company token rejected by the personal profile API.
+
+### Build and Code Quality Results
+
+The following checks were successfully completed during development:
+
+* Frontend production build.
+* Backend production build.
+* Backend lint with zero warnings and zero errors.
+
+## Limitations and Further Improvements
+
+* The Members and Posts sections currently provide initial placeholder interfaces.
+* Employee accounts, photo uploads, feeds, likes, comments, and notifications are outside the current implementation scope.
+* Current unit tests use mocks for authentication dependencies; they do not replace end-to-end tests against a real PostgreSQL database.
+* Rate limiting and authentication should be tested in the intended deployment environment.
+* Production deployment should use HTTPS, secure secret management, appropriate CORS settings, and monitoring.
+* Distributed deployments may require shared rate-limit storage.
+* Further tests should cover DTO validation, authorization, rate limiting, and database integration.
+
+## Environment Security
+
+Never commit `.env` files, database passwords, access tokens, or JWT secrets.
+
+Use `.env.example` to document the required configuration without exposing real credentials.
 
 ## Author
 
-**Aishwarya M.**
+Aishwarya M.
 
 Developed as part of the Infynux Solutions internship.
-
-## Repository
-
-[View the GitHub Repository](https://github.com/Aishwaryam990/infynux-task2-fullstack-auth)
