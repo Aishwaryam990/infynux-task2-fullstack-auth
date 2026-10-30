@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import './App.css';
+import CompanyPortal from './components/CompanyPortal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -18,6 +19,9 @@ confirmPassword: '',
 };
 
 function App() {
+const [portal, setPortal] = useState(() =>
+  sessionStorage.getItem('companyAccessToken') ? 'company' : 'personal'
+);
 const [page, setPage] = useState('login');
 const [showPassword, setShowPassword] = useState(false);
 const [loading, setLoading] = useState(false);
@@ -255,6 +259,10 @@ try {
 
 }
 
+if (portal === 'company') {
+  return <CompanyPortal onBack={() => setPortal('personal')} />;
+}
+
 if (token) {
 return ( <main className="app-container"> <section className="intro-panel"> <div className="brand"> <div className="brand-icon">A</div> <span>AuthSpace</span> </div>
 
@@ -268,17 +276,24 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
         <p>Manage your personal account details securely.</p>
 
         <div className="feature-list">
-          <div>✓ Protected profile access</div>
-          <div>✓ Secure account updates</div>
-          <div>✓ Session-based login</div>
+          <div>âœ“ Protected profile access</div>
+          <div>âœ“ Secure account updates</div>
+          <div>âœ“ Session-based login</div>
         </div>
       </div>
 
-      <p className="copyright">© 2026 AuthSpace · Full Stack Project</p>
+      <p className="copyright">Â© 2026 AuthSpace Â· Full Stack Project</p>
     </section>
 
     <section className="form-panel">
       <div className="form-wrapper">
+<button
+  type="button"
+  className="portal-switch-button"
+  onClick={() => setPortal('company')}
+>
+  Company Portal →
+</button>
         <div className="mobile-brand">
           <div className="brand-icon">A</div>
           <span>AuthSpace</span>
@@ -406,17 +421,24 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
       </p>
 
       <div className="feature-list">
-        <div>✓ Secure password hashing</div>
-        <div>✓ Easy account management</div>
-        <div>✓ Simple and responsive design</div>
+        <div>âœ“ Secure password hashing</div>
+        <div>âœ“ Easy account management</div>
+        <div>âœ“ Simple and responsive design</div>
       </div>
     </div>
 
-    <p className="copyright">© 2026 AuthSpace · Full Stack Project</p>
+    <p className="copyright">Â© 2026 AuthSpace Â· Full Stack Project</p>
   </section>
 
   <section className="form-panel">
     <div className="form-wrapper">
+<button
+  type="button"
+  className="portal-switch-button"
+  onClick={() => setPortal('company')}
+>
+  Company Portal →
+</button>
       <div className="mobile-brand">
         <div className="brand-icon">A</div>
         <span>AuthSpace</span>
@@ -585,3 +607,4 @@ return ( <main className="app-container"> <section className="intro-panel"> <div
 }
 
 export default App;
+
