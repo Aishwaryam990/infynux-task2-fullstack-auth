@@ -1,8 +1,12 @@
-# Full-Stack Authentication and User Profile Management
+# Full-Stack Authentication, User Profile Management & Company Dashboard
 
 ## Overview
 
-This project is a React, NestJS, and PostgreSQL application developed during the Infynux Solutions internship. This improvement assignment focuses on code quality, input validation, authentication security, configuration management, automated testing, and production readiness.
+This project is a React, NestJS, and PostgreSQL application developed during the Infynux Solutions internship.
+
+The application provides personal user registration, login, profile management, and a separate company registration and authentication system with a protected company dashboard.
+
+The project focuses on secure authentication, input validation, database integration, access control, responsive user interfaces, and production readiness.
 
 ## Technology Stack
 
@@ -18,30 +22,86 @@ This project is a React, NestJS, and PostgreSQL application developed during the
 
 ## Features
 
-* User registration and login
-* Email normalization and validation
-* Password hashing using bcrypt
-* Duplicate-email detection
-* JWT-based authentication
-* Protected user profile retrieval and updates
-* Profile updates restricted to the authenticated user
-* Backend request validation
-* Environment-based configuration
-* Global API rate limiting
-* Loading, success, and error messages
-* Responsive React interface
-* Automated unit tests for authentication and JWT guard behavior
+### 1. Personal User Authentication
+
+* User registration and login.
+* Email normalization and validation.
+* Password hashing using bcrypt.
+* Duplicate-email detection.
+* JWT-based authentication.
+* Protected user profile retrieval and updates.
+* Profile updates restricted to the authenticated user.
+
+### 2. User Profile Management
+
+* Retrieve personal account information.
+* Update profile information.
+* Display account details from the database.
+* Protected profile routes.
+
+### 3. Company Registration and Authentication
+
+* Company registration with:
+
+  * Company name
+  * Company email
+  * Unique company username
+  * Password
+  * Confirm password
+* Frontend and backend input validation.
+* Password confirmation validation.
+* Unique email and username checks.
+* Duplicate company registration prevention.
+* Secure password hashing using bcrypt.
+* Company login using database credentials.
+* JWT-based company authentication.
+* Generic invalid-credentials error messages.
+
+### 4. Company Dashboard
+
+* Protected company dashboard.
+* Company-specific workspace.
+* Company information retrieved from PostgreSQL.
+* Dashboard displays:
+
+  * Company name
+  * Company email
+  * Company username
+  * Account creation date
+* Dashboard navigation:
+
+  * Home
+  * Members
+  * Posts
+  * Settings
+* Initial Members and Posts placeholder sections.
+* Company logout functionality.
+* Session persistence across browser refreshes.
+
+### 5. Security and Access Control
+
+* Separate authentication for personal users and companies.
+* JWT token type verification.
+* Protected API routes.
+* Company dashboard access restricted to the authenticated company.
+* Personal and company authentication isolation.
+* Environment-based configuration.
+* Global API request rate limiting.
 
 ## Security Improvements
 
 * The application validates required environment configuration at startup.
-* JWT signing uses the JWT_SECRET environment variable.
+* JWT signing uses the `JWT_SECRET` environment variable.
 * JWT access tokens have a 15-minute expiration.
-* Registration validates the name, email, and password.
-* Passwords are hashed before being stored.
-* The JWT guard verifies the token and checks that the user still exists in the database.
-* Profile routes require authentication and use the authenticated user's identity.
-* The global validation pipe should reject unexpected request properties.
+* Passwords are hashed before being stored in PostgreSQL.
+* Registration validates user and company information.
+* Duplicate email and company username registrations are rejected.
+* Authentication guards verify JWT tokens and check the corresponding database records.
+* Personal-user tokens cannot access company-protected routes.
+* Company tokens cannot access personal-user protected routes.
+* Profile routes use the authenticated user's identity.
+* Company dashboard routes use the authenticated company's identity.
+* The global validation pipe rejects unexpected request properties.
 * Global rate limiting is configured to allow up to 10 requests per 60-second window, subject to the application's throttler storage and deployment configuration.
 * Environment files containing secrets must not be committed to Git.
 
@@ -51,15 +111,26 @@ This project is a React, NestJS, and PostgreSQL application developed during the
 Task2/
 ├── backend/
 │   ├── prisma/
+│   │   ├── migrations/
+│   │   └── schema.prisma
 │   ├── src/
 │   │   ├── auth/
 │   │   │   ├── dto/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.service.ts
-│   │   │   ├── auth.service.spec.ts
 │   │   │   ├── jwt-auth.guard.ts
-│   │   │   └── jwt-auth.guard.spec.ts
+│   │   │   └── auth.service.spec.ts
+│   │   ├── companies/
+│   │   │   ├── dto/
+│   │   │   │   ├── company-login.dto.ts
+│   │   │   │   └── company-register.dto.ts
+│   │   │   ├── company-auth.controller.ts
+│   │   │   ├── company-auth.guard.ts
+│   │   │   ├── company-auth.module.ts
+│   │   │   ├── company-auth.service.ts
+│   │   │   ├── company.controller.ts
+│   │   │   └── company.service.ts
 │   │   ├── users/
 │   │   ├── prisma/
 │   │   ├── app.module.ts
@@ -68,6 +139,12 @@ Task2/
 │   └── package.json
 ├── frontend/
 │   ├── src/
+│   │   ├── components/
+│   │   │   ├── CompanyPortal.jsx
+│   │   │   └── CompanyPortal.css
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   └── index.css
 │   ├── .env.example
 │   └── package.json
 ├── .gitignore
@@ -82,14 +159,14 @@ Task2/
 
 ## Setup
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Aishwaryam990/infynux-task2-fullstack-auth.git
 cd infynux-task2-fullstack-auth
 ```
 
-### 2. Configure the backend
+### 2. Configure the Backend
 
 ```bash
 cd backend
@@ -109,9 +186,9 @@ Configure these variables in `backend/.env`:
 * `DATABASE_URL`: PostgreSQL connection string.
 * `JWT_SECRET`: A securely generated secret containing at least 32 characters.
 
-Create the database specified by `DATABASE_URL` before running migrations.
+Create the PostgreSQL database specified by `DATABASE_URL` before running migrations.
 
-### 3. Apply database migrations
+### 3. Apply Database Migrations
 
 From the backend directory:
 
@@ -122,7 +199,7 @@ npx prisma generate
 
 For a new development database where a development migration needs to be created, use the Prisma development migration workflow instead.
 
-### 4. Start the backend
+### 4. Start the Backend
 
 From the backend directory:
 
@@ -130,9 +207,13 @@ From the backend directory:
 npm run start:dev
 ```
 
-The backend normally runs at `http://localhost:3000`.
+The backend normally runs at:
 
-### 5. Configure the frontend
+```text
+http://localhost:3000
+```
+
+### 5. Configure the Frontend
 
 Open a second terminal:
 
@@ -153,7 +234,7 @@ Set the API URL in `frontend/.env`:
 VITE_API_URL=http://localhost:3000
 ```
 
-### 6. Start the frontend
+### 6. Start the Frontend
 
 From the frontend directory:
 
@@ -161,64 +242,97 @@ From the frontend directory:
 npm run dev
 ```
 
-Open the local URL displayed by Vite, normally `http://localhost:5173`.
+Open the local URL displayed by Vite, normally:
+
+```text
+http://localhost:5173
+```
 
 Keep both servers running while testing the application.
 
 ## API Endpoints
 
+### Personal User Authentication
+
 | Method | Endpoint         | Description                               |
 | ------ | ---------------- | ----------------------------------------- |
-| POST   | `/auth/register` | Register a user                           |
-| POST   | `/auth/login`    | Authenticate a user                       |
+| POST   | `/auth/register` | Register a personal user                  |
+| POST   | `/auth/login`    | Authenticate a personal user              |
 | GET    | `/api/users/me`  | Retrieve the authenticated user's profile |
 | PATCH  | `/api/users/me`  | Update the authenticated user's profile   |
 
-Profile endpoints require a valid JWT access token.
+### Company Authentication and Dashboard
 
-## Automated Tests
+| Method | Endpoint                       | Description                                    |
+| ------ | ------------------------------ | ---------------------------------------------- |
+| POST   | `/api/companies/auth/register` | Register a company                             |
+| POST   | `/api/companies/auth/login`    | Authenticate a company                         |
+| GET    | `/api/companies/dashboard`     | Retrieve the authenticated company's dashboard |
 
-The backend unit tests cover:
+The company dashboard endpoint requires a valid company JWT access token.
 
-* Successful registration and password hashing
-* Duplicate registration rejection
-* Successful login
-* Rejection of unknown email addresses
-* Rejection of incorrect passwords
-* Missing authentication headers
-* Malformed authorization headers
-* Invalid or expired JWTs
-* Rejection when the token's user no longer exists
-* Acceptance of a valid token for an existing user
+Personal-user and company authentication use separate token types and protected routes.
 
-Run the backend build and tests from the `backend` directory:
+## Testing
+
+### Backend Checks
+
+Run the following commands from the backend directory:
 
 ```bash
+npm run lint
 npm run build
 npm test -- --runInBand
 ```
 
-Run frontend checks from the `frontend` directory:
+The backend unit tests cover authentication and JWT guard behavior.
+
+### Frontend Production Build
+
+Run from the frontend directory:
 
 ```bash
 npm run build
-npm run lint
 ```
 
-Only report the checks as passing after executing them successfully.
+### Company Authentication and Dashboard Verification
+
+The following functional checks were performed:
+
+* Company registration.
+* Successful company login.
+* Duplicate company registration rejection.
+* Protected company dashboard access.
+* Dashboard information retrieved from the database.
+* Dashboard navigation.
+* Session persistence after browser refresh.
+* Company logout.
+* Personal-user token rejected by the company dashboard API.
+* Company token rejected by the personal profile API.
+
+### Build and Code Quality Results
+
+The following checks were successfully completed during development:
+
+* Frontend production build.
+* Backend production build.
+* Backend lint with zero warnings and zero errors.
 
 ## Limitations and Further Improvements
 
+* The Members and Posts sections currently provide initial placeholder interfaces.
+* Employee accounts, photo uploads, feeds, likes, comments, and notifications are outside the current implementation scope.
 * Current unit tests use mocks for authentication dependencies; they do not replace end-to-end tests against a real PostgreSQL database.
 * Rate limiting and authentication should be tested in the intended deployment environment.
 * Production deployment should use HTTPS, secure secret management, appropriate CORS settings, and monitoring.
 * Distributed deployments may require shared rate-limit storage.
-* Dependency audit findings should be reviewed and resolved without applying potentially breaking upgrades blindly.
-* Further tests should cover DTO validation, profile authorization, rate limiting, and database integration.
+* Further tests should cover DTO validation, authorization, rate limiting, and database integration.
 
 ## Environment Security
 
-Never commit `.env` files, database passwords, or JWT secrets. Use `.env.example` to document the required configuration without exposing real credentials.
+Never commit `.env` files, database passwords, access tokens, or JWT secrets.
+
+Use `.env.example` to document the required configuration without exposing real credentials.
 
 ## Author
 
