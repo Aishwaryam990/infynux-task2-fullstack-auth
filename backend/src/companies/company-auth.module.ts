@@ -10,6 +10,11 @@ import { CompanyAuthGuard } from './company-auth.guard';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
 
+import { EmployeeController } from '../employees/employee.controller';
+import { EmployeeAuthService } from '../employees/employee-auth.service';
+import { EmployeeAuthGuard } from '../employees/employee-auth.guard';
+import { EmployeeManagementService } from '../employees/employee-management.service';
+
 @Module({
   imports: [
     PrismaModule,
@@ -26,11 +31,15 @@ import { CompanyService } from './company.service';
   controllers: [
     CompanyAuthController,
     CompanyController,
+    EmployeeController,
   ],
   providers: [
     CompanyAuthService,
     CompanyAuthGuard,
     CompanyService,
+    EmployeeAuthService,
+    EmployeeAuthGuard,
+    EmployeeManagementService,
   ],
 })
 export class CompanyAuthModule {}

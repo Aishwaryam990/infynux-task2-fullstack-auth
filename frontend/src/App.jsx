@@ -19,8 +19,12 @@ confirmPassword: '',
 };
 
 function App() {
-const [portal, setPortal] = useState(() =>
-  sessionStorage.getItem('companyAccessToken') ? 'company' : 'personal'
+const [portal, setPortal] = useState(
+  () =>
+    sessionStorage.getItem('companyAccessToken') ||
+    sessionStorage.getItem('employeeAccessToken')
+      ? 'company'
+      : 'personal'
 );
 const [page, setPage] = useState('login');
 const [showPassword, setShowPassword] = useState(false);

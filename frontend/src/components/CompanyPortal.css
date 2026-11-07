@@ -654,3 +654,62 @@
     text-align: left;
   }
 }
+.employee-members {
+  margin: 20px;
+}
+
+.employee-members form {
+  max-width: 500px;
+  margin: 20px 0;
+}
+
+.employee-credentials {
+  background: #e8f7ed;
+  border: 1px solid #8ac9a0;
+  border-radius: 10px;
+  padding: 18px;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+
+.employee-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 15px;
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.employee-table th,
+.employee-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.employee-table th {
+  background: #f2f4f8;
+}
+
+.employee-auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.employee-auth-links button {
+  border: none;
+  background: transparent;
+  color: #3157bd;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.employee-auth-links button:hover {
+  text-decoration: underline;
+}
