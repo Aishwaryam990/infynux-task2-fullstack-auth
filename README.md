@@ -1,341 +1,251 @@
-# Full-Stack Authentication, User Profile Management & Company Dashboard
+# Company Member Management & Employee Authentication
 
-## Overview
+A full-stack web application developed as part of the Infynux Solutions internship. The application allows company administrators to manage employees, generate employee login credentials, and provide secure employee authentication.
 
-This project is a React, NestJS, and PostgreSQL application developed during the Infynux Solutions internship.
+## Project Overview
 
-The application provides personal user registration, login, profile management, and a separate company registration and authentication system with a protected company dashboard.
+The system provides separate authentication and dashboard experiences for company administrators and employees.
 
-The project focuses on secure authentication, input validation, database integration, access control, responsive user interfaces, and production readiness.
+Company administrators can register, log in, add employees, view employee records, and reset employee passwords. Employees can log in using their generated credentials and must change their temporary password during their first login.
 
-## Technology Stack
+## Technologies Used
 
-* Frontend: React and Vite
-* Backend: NestJS and TypeScript
-* Database: PostgreSQL
-* ORM: Prisma
-* Password hashing: bcrypt
-* Authentication: JSON Web Tokens (JWT)
-* Validation: class-validator and class-transformer
-* Automated testing: Jest
-* Request rate limiting: @nestjs/throttler
+### Frontend
+- React.js
+- JavaScript
+- HTML5
+- CSS3
+- Vite
+
+### Backend
+- NestJS
+- Node.js
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- JWT Authentication
+- bcrypt Password Hashing
 
 ## Features
 
-### 1. Personal User Authentication
+### Company Administration
+- Company registration and login.
+- Company dashboard.
+- Add new employees.
+- Automatic employee Login ID generation.
+- Secure temporary password generation.
+- View employee list and account status.
+- Reset employee passwords.
 
-* User registration and login.
-* Email normalization and validation.
-* Password hashing using bcrypt.
-* Duplicate-email detection.
-* JWT-based authentication.
-* Protected user profile retrieval and updates.
-* Profile updates restricted to the authenticated user.
+### Employee Authentication
+- Employee login using Login ID and password.
+- Secure password verification using bcrypt.
+- Mandatory password change during first login.
+- JWT-based authentication.
+- Employee account status verification.
 
-### 2. User Profile Management
+### Employee Dashboard
+- Employee name and email.
+- Unique employee Login ID.
+- Company information.
+- Account status.
+- Account creation date.
+- Home and Posts placeholder sections.
 
-* Retrieve personal account information.
-* Update profile information.
-* Display account details from the database.
-* Protected profile routes.
-
-### 3. Company Registration and Authentication
-
-* Company registration with:
-
-  * Company name
-  * Company email
-  * Unique company username
-  * Password
-  * Confirm password
-* Frontend and backend input validation.
-* Password confirmation validation.
-* Unique email and username checks.
-* Duplicate company registration prevention.
-* Secure password hashing using bcrypt.
-* Company login using database credentials.
-* JWT-based company authentication.
-* Generic invalid-credentials error messages.
-
-### 4. Company Dashboard
-
-* Protected company dashboard.
-* Company-specific workspace.
-* Company information retrieved from PostgreSQL.
-* Dashboard displays:
-
-  * Company name
-  * Company email
-  * Company username
-  * Account creation date
-* Dashboard navigation:
-
-  * Home
-  * Members
-  * Posts
-  * Settings
-* Initial Members and Posts placeholder sections.
-* Company logout functionality.
-* Session persistence across browser refreshes.
-
-### 5. Security and Access Control
-
-* Separate authentication for personal users and companies.
-* JWT token type verification.
-* Protected API routes.
-* Company dashboard access restricted to the authenticated company.
-* Personal and company authentication isolation.
-* Environment-based configuration.
-* Global API request rate limiting.
-
-## Security Improvements
-
-* The application validates required environment configuration at startup.
-* JWT signing uses the `JWT_SECRET` environment variable.
-* JWT access tokens have a 15-minute expiration.
-* Passwords are hashed before being stored in PostgreSQL.
-* Registration validates user and company information.
-* Duplicate email and company username registrations are rejected.
-* Authentication guards verify JWT tokens and check the corresponding database records.
-* Personal-user tokens cannot access company-protected routes.
-* Company tokens cannot access personal-user protected routes.
-* Profile routes use the authenticated user's identity.
-* Company dashboard routes use the authenticated company's identity.
-* The global validation pipe rejects unexpected request properties.
-* Global rate limiting is configured to allow up to 10 requests per 60-second window, subject to the application's throttler storage and deployment configuration.
-* Environment files containing secrets must not be committed to Git.
+### Security
+- Passwords stored as bcrypt hashes.
+- JWT-based authentication.
+- Protected company and employee routes.
+- Company-specific employee data isolation.
+- Employee authorization checks.
+- Server-side first-login password change enforcement.
 
 ## Project Structure
 
 ```text
 Task2/
+│
 ├── backend/
 │   ├── prisma/
 │   │   ├── migrations/
 │   │   └── schema.prisma
-│   ├── src/
-│   │   ├── auth/
-│   │   │   ├── dto/
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.module.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── jwt-auth.guard.ts
-│   │   │   └── auth.service.spec.ts
-│   │   ├── companies/
-│   │   │   ├── dto/
-│   │   │   │   ├── company-login.dto.ts
-│   │   │   │   └── company-register.dto.ts
-│   │   │   ├── company-auth.controller.ts
-│   │   │   ├── company-auth.guard.ts
-│   │   │   ├── company-auth.module.ts
-│   │   │   ├── company-auth.service.ts
-│   │   │   ├── company.controller.ts
-│   │   │   └── company.service.ts
-│   │   ├── users/
-│   │   ├── prisma/
-│   │   ├── app.module.ts
-│   │   └── main.ts
-│   ├── .env.example
-│   └── package.json
+│   │
+│   └── src/
+│       ├── companies/
+│       ├── employees/
+│       ├── prisma/
+│       └── main.ts
+│
 ├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── CompanyPortal.jsx
-│   │   │   └── CompanyPortal.css
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── index.css
-│   ├── .env.example
-│   └── package.json
-├── .gitignore
+│   └── src/
+│       ├── components/
+│       │   ├── CompanyPortal.jsx
+│       │   └── CompanyPortal.css
+│       └── App.jsx
+│
 └── README.md
 ```
 
-## Prerequisites
+## Installation and Setup
 
-* Node.js and npm
-* PostgreSQL
-* Git
+### Prerequisites
 
-## Setup
+- Node.js
+- npm
+- PostgreSQL
+- Git
 
 ### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Aishwaryam990/infynux-task2-fullstack-auth.git
+```
+
+```bash
 cd infynux-task2-fullstack-auth
 ```
 
-### 2. Configure the Backend
+### 2. Backend Setup
 
 ```bash
 cd backend
 npm install
 ```
 
-Create a local `.env` file from the example.
+Configure the backend `.env` file with your PostgreSQL database connection and JWT secret.
 
-Windows PowerShell:
+Example:
 
-```powershell
-Copy-Item .env.example .env
+```env
+DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/intern_auth?schema=public"
+JWT_SECRET="your_secure_secret"
 ```
 
-Configure these variables in `backend/.env`:
-
-* `DATABASE_URL`: PostgreSQL connection string.
-* `JWT_SECRET`: A securely generated secret containing at least 32 characters.
-
-Create the PostgreSQL database specified by `DATABASE_URL` before running migrations.
-
-### 3. Apply Database Migrations
-
-From the backend directory:
+Apply database migrations:
 
 ```bash
 npx prisma migrate deploy
-npx prisma generate
 ```
 
-For a new development database where a development migration needs to be created, use the Prisma development migration workflow instead.
-
-### 4. Start the Backend
-
-From the backend directory:
+Start the backend:
 
 ```bash
 npm run start:dev
 ```
 
-The backend normally runs at:
+Backend runs on:
 
-```text
-http://localhost:3000
-```
+`http://localhost:3000`
 
-### 5. Configure the Frontend
+### 3. Frontend Setup
 
-Open a second terminal:
+Open another terminal:
 
 ```bash
 cd frontend
 npm install
 ```
 
-Create the frontend environment file:
+Create or configure the frontend `.env` file:
 
-```powershell
-Copy-Item .env.example .env
-```
-
-Set the API URL in `frontend/.env`:
-
-```text
+```env
 VITE_API_URL=http://localhost:3000
 ```
 
-### 6. Start the Frontend
-
-From the frontend directory:
+Start the frontend:
 
 ```bash
 npm run dev
 ```
 
-Open the local URL displayed by Vite, normally:
-
-```text
-http://localhost:5173
-```
-
-Keep both servers running while testing the application.
+Open the Vite URL displayed in the terminal.
 
 ## API Endpoints
 
-### Personal User Authentication
+### Company APIs
 
-| Method | Endpoint         | Description                               |
-| ------ | ---------------- | ----------------------------------------- |
-| POST   | `/auth/register` | Register a personal user                  |
-| POST   | `/auth/login`    | Authenticate a personal user              |
-| GET    | `/api/users/me`  | Retrieve the authenticated user's profile |
-| PATCH  | `/api/users/me`  | Update the authenticated user's profile   |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/companies/auth/register` | Register company |
+| POST | `/api/companies/auth/login` | Company login |
+| GET | `/api/companies/dashboard` | Company dashboard |
+| POST | `/api/companies/employees` | Create employee |
+| GET | `/api/companies/employees` | List employees |
+| POST | `/api/companies/employees/:loginId/reset-password` | Reset employee password |
 
-### Company Authentication and Dashboard
+### Employee APIs
 
-| Method | Endpoint                       | Description                                    |
-| ------ | ------------------------------ | ---------------------------------------------- |
-| POST   | `/api/companies/auth/register` | Register a company                             |
-| POST   | `/api/companies/auth/login`    | Authenticate a company                         |
-| GET    | `/api/companies/dashboard`     | Retrieve the authenticated company's dashboard |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/employees/auth/login` | Employee login |
+| POST | `/api/employees/auth/change-password` | Change password |
+| GET | `/api/employees/me` | Get employee profile |
 
-The company dashboard endpoint requires a valid company JWT access token.
+Protected endpoints require the appropriate Bearer JWT token.
 
-Personal-user and company authentication use separate token types and protected routes.
+## Employee Account Workflow
 
-## Testing
+1. Company administrator logs in.
+2. Administrator opens Company Members.
+3. Administrator enters employee name and email.
+4. System generates a unique Login ID and temporary password.
+5. Employee receives the generated credentials.
+6. Employee logs in using those credentials.
+7. System requires a password change during first login.
+8. Employee accesses their dashboard after successfully changing the password.
 
-### Backend Checks
+Administrators can reset an employee's password when required. The newly generated temporary password is displayed once.
 
-Run the following commands from the backend directory:
+## Validation and Testing
+
+The following checks were completed:
+
+| Test | Result |
+|---|---|
+| Backend production build | Passed |
+| Backend lint | Passed |
+| Frontend production build | Passed |
+| Employee account creation | Passed |
+| Employee login | Passed |
+| Temporary password change | Passed |
+| Employee dashboard | Passed |
+| Employee password reset | Passed |
+
+### Build Commands
+
+Backend:
 
 ```bash
+npm run build
 npm run lint
-npm run build
-npm test -- --runInBand
 ```
 
-The backend unit tests cover authentication and JWT guard behavior.
-
-### Frontend Production Build
-
-Run from the frontend directory:
+Frontend:
 
 ```bash
 npm run build
 ```
 
-### Company Authentication and Dashboard Verification
+## Git Information
 
-The following functional checks were performed:
+**Repository:**  
+https://github.com/Aishwaryam990/infynux-task2-fullstack-auth
 
-* Company registration.
-* Successful company login.
-* Duplicate company registration rejection.
-* Protected company dashboard access.
-* Dashboard information retrieved from the database.
-* Dashboard navigation.
-* Session persistence after browser refresh.
-* Company logout.
-* Personal-user token rejected by the company dashboard API.
-* Company token rejected by the personal profile API.
+**Development Branch:**  
+`task6/company-member-authentication`
 
-### Build and Code Quality Results
+**Latest Commit:**  
+`097a15f86dfcc3a5270232202fc4b3a8f72addd3`
 
-The following checks were successfully completed during development:
+## Future Enhancements
 
-* Frontend production build.
-* Backend production build.
-* Backend lint with zero warnings and zero errors.
+- Employee profile editing.
+- Employee account activation and deactivation.
+- Company announcements.
+- Posts and internal communication.
+- Employee notifications.
+- Advanced role-based permissions.
 
-## Limitations and Further Improvements
+## Conclusion
 
-* The Members and Posts sections currently provide initial placeholder interfaces.
-* Employee accounts, photo uploads, feeds, likes, comments, and notifications are outside the current implementation scope.
-* Current unit tests use mocks for authentication dependencies; they do not replace end-to-end tests against a real PostgreSQL database.
-* Rate limiting and authentication should be tested in the intended deployment environment.
-* Production deployment should use HTTPS, secure secret management, appropriate CORS settings, and monitoring.
-* Distributed deployments may require shared rate-limit storage.
-* Further tests should cover DTO validation, authorization, rate limiting, and database integration.
-
-## Environment Security
-
-Never commit `.env` files, database passwords, access tokens, or JWT secrets.
-
-Use `.env.example` to document the required configuration without exposing real credentials.
-
-## Author
-
-Aishwarya M.
-
-Developed as part of the Infynux Solutions internship.
+The project demonstrates a full-stack company employee management and authentication system using React, NestJS, PostgreSQL, and Prisma. It provides secure employee account creation, authentication, password management, and company-specific employee access.
