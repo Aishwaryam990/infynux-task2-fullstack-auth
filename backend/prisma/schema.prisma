@@ -16,3 +16,33 @@ model User {
 
   @@map("users")
 }
+
+model Company {
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @db.VarChar(150)
+  email        String     @unique @db.VarChar(255)
+  username     String     @unique @db.VarChar(50)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  employees    Employee[]
+
+  @@map("companies")
+}
+
+model Employee {
+  id                String   @id @default(uuid()) @db.Uuid
+  companyId         String   @map("company_id") @db.Uuid
+  name              String   @db.VarChar(100)
+  email             String   @db.VarChar(255)
+  loginId           String   @unique @map("login_id") @db.VarChar(50)
+  passwordHash      String   @map("password_hash") @db.VarChar(255)
+  status            String   @default("ACTIVE") @db.VarChar(20)
+  mustChangePassword Boolean  @default(true) @map("must_change_password")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@map("employees")
+}

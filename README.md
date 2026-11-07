@@ -1,267 +1,251 @@
-# Full-Stack Registration, Login and User Profile Management System
+# Company Member Management & Employee Authentication
 
-A responsive full-stack web application developed as part of the Infynux Solutions internship. The application allows users to register, log in, and manage their profiles using a React frontend, NestJS backend, and PostgreSQL database.
+A full-stack web application developed as part of the Infynux Solutions internship. The application allows company administrators to manage employees, generate employee login credentials, and provide secure employee authentication.
 
 ## Project Overview
 
-This project demonstrates the integration of frontend development, backend APIs, database operations, input validation, and JWT-based authentication.
+The system provides separate authentication and dashboard experiences for company administrators and employees.
 
-Users can create an account using their name, email, and password, log in with their registered credentials, view their profile information, update their name, and log out.
+Company administrators can register, log in, add employees, view employee records, and reset employee passwords. Employees can log in using their generated credentials and must change their temporary password during their first login.
 
 ## Technologies Used
 
 ### Frontend
-
-* React
-* Vite
-* HTML
-* CSS
-* JavaScript
+- React.js
+- JavaScript
+- HTML5
+- CSS3
+- Vite
 
 ### Backend
-
-* NestJS
-* TypeScript
-* Prisma ORM
-* PostgreSQL
-* bcrypt for password hashing
-* JWT for access-token generation and authentication
+- NestJS
+- Node.js
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- JWT Authentication
+- bcrypt Password Hashing
 
 ## Features
 
-* User registration and login
-* Responsive interface for desktop and mobile devices
-* Required-field and email-format validation
-* Password confirmation during registration
-* Duplicate-email detection
-* Password hashing using bcrypt
-* JWT access-token generation after successful login
-* JWT-protected user profile access
-* Retrieve and update user profile information
-* Backend validation for profile updates
-* Logout functionality
-* Loading, success, and error messages
-* PostgreSQL database integration
-* Password hashes excluded from API responses
+### Company Administration
+- Company registration and login.
+- Company dashboard.
+- Add new employees.
+- Automatic employee Login ID generation.
+- Secure temporary password generation.
+- View employee list and account status.
+- Reset employee passwords.
+
+### Employee Authentication
+- Employee login using Login ID and password.
+- Secure password verification using bcrypt.
+- Mandatory password change during first login.
+- JWT-based authentication.
+- Employee account status verification.
+
+### Employee Dashboard
+- Employee name and email.
+- Unique employee Login ID.
+- Company information.
+- Account status.
+- Account creation date.
+- Home and Posts placeholder sections.
+
+### Security
+- Passwords stored as bcrypt hashes.
+- JWT-based authentication.
+- Protected company and employee routes.
+- Company-specific employee data isolation.
+- Employee authorization checks.
+- Server-side first-login password change enforcement.
 
 ## Project Structure
 
 ```text
 Task2/
+│
 ├── backend/
 │   ├── prisma/
 │   │   ├── migrations/
 │   │   └── schema.prisma
-│   ├── src/
-│   │   ├── auth/
-│   │   │   ├── dto/
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.module.ts
-│   │   │   ├── auth.service.ts
-│   │   │   └── jwt-auth.guard.ts
-│   │   ├── users/
-│   │   │   ├── dto/
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.module.ts
-│   │   │   └── users.service.ts
-│   │   ├── prisma/
-│   │   ├── app.module.ts
-│   │   └── main.ts
-│   ├── .env.example
-│   └── package.json
+│   │
+│   └── src/
+│       ├── companies/
+│       ├── employees/
+│       ├── prisma/
+│       └── main.ts
+│
 ├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
-│   └── package.json
-├── .gitignore
+│   └── src/
+│       ├── components/
+│       │   ├── CompanyPortal.jsx
+│       │   └── CompanyPortal.css
+│       └── App.jsx
+│
 └── README.md
 ```
 
-## Prerequisites
+## Installation and Setup
 
-Install the following before running the application:
+### Prerequisites
 
-* Node.js and npm
-* PostgreSQL
-* Git (optional, for cloning the repository)
-
-## Getting Started
+- Node.js
+- npm
+- PostgreSQL
+- Git
 
 ### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Aishwaryam990/infynux-task2-fullstack-auth.git
+```
+
+```bash
 cd infynux-task2-fullstack-auth
 ```
 
-### 2. Configure the Backend
-
-Open a terminal in the project root and run:
+### 2. Backend Setup
 
 ```bash
 cd backend
 npm install
 ```
 
-Create a local `.env` file from the example.
+Configure the backend `.env` file with your PostgreSQL database connection and JWT secret.
 
-**Windows PowerShell:**
+Example:
 
-```powershell
-Copy-Item .env.example .env
+```env
+DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/intern_auth?schema=public"
+JWT_SECRET="your_secure_secret"
 ```
 
-Open `backend/.env` and configure these environment variables using your own values:
-
-* `DATABASE_URL`: PostgreSQL connection string for your database.
-* `JWT_SECRET`: A long, randomly generated secret used to sign access tokens.
-
-Create the PostgreSQL database specified in your connection string before running the migrations.
-
-**Important:** Keep your actual `.env` file private. Never upload database passwords or JWT secrets to GitHub.
-
-### 3. Run Database Migrations
-
-From the `backend` directory, run:
+Apply database migrations:
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate deploy
 ```
 
-This applies the existing Prisma migrations to your configured PostgreSQL database.
-
-### 4. Start the Backend Server
-
-From the `backend` directory, run:
+Start the backend:
 
 ```bash
 npm run start:dev
 ```
 
-The backend runs at:
+Backend runs on:
 
 `http://localhost:3000`
 
-### 5. Start the Frontend
+### 3. Frontend Setup
 
-Open a second terminal in the project root and run:
+Open another terminal:
 
 ```bash
 cd frontend
 npm install
+```
+
+Create or configure the frontend `.env` file:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+Start the frontend:
+
+```bash
 npm run dev
 ```
 
-Open the local development URL displayed by Vite. By default, it is:
-
-`http://localhost:5173`
-
-Keep both development servers running while using the application.
+Open the Vite URL displayed in the terminal.
 
 ## API Endpoints
 
-Base URL: `http://localhost:3000`
+### Company APIs
 
-| Method | Endpoint         | Description                                |
-| ------ | ---------------- | ------------------------------------------ |
-| POST   | `/auth/register` | Registers a new user                       |
-| POST   | `/auth/login`    | Authenticates a registered user            |
-| GET    | `/api/users/me`  | Retrieves the authenticated user's profile |
-| PATCH  | `/api/users/me`  | Updates the authenticated user's profile   |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/companies/auth/register` | Register company |
+| POST | `/api/companies/auth/login` | Company login |
+| GET | `/api/companies/dashboard` | Company dashboard |
+| POST | `/api/companies/employees` | Create employee |
+| GET | `/api/companies/employees` | List employees |
+| POST | `/api/companies/employees/:loginId/reset-password` | Reset employee password |
 
-**Note:** The profile endpoints require a valid JWT access token.
+### Employee APIs
 
-### Registration
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/employees/auth/login` | Employee login |
+| POST | `/api/employees/auth/change-password` | Change password |
+| GET | `/api/employees/me` | Get employee profile |
 
-Example request body:
+Protected endpoints require the appropriate Bearer JWT token.
 
-```json
-{
-  "name": "Test User",
-  "email": "testuser@example.com",
-  "password": "TestPass123!"
-}
+## Employee Account Workflow
+
+1. Company administrator logs in.
+2. Administrator opens Company Members.
+3. Administrator enters employee name and email.
+4. System generates a unique Login ID and temporary password.
+5. Employee receives the generated credentials.
+6. Employee logs in using those credentials.
+7. System requires a password change during first login.
+8. Employee accesses their dashboard after successfully changing the password.
+
+Administrators can reset an employee's password when required. The newly generated temporary password is displayed once.
+
+## Validation and Testing
+
+The following checks were completed:
+
+| Test | Result |
+|---|---|
+| Backend production build | Passed |
+| Backend lint | Passed |
+| Frontend production build | Passed |
+| Employee account creation | Passed |
+| Employee login | Passed |
+| Temporary password change | Passed |
+| Employee dashboard | Passed |
+| Employee password reset | Passed |
+
+### Build Commands
+
+Backend:
+
+```bash
+npm run build
+npm run lint
 ```
 
-A successful registration creates a user record and returns the user's safe profile information.
+Frontend:
 
-### Login
-
-Example request body:
-
-```json
-{
-  "email": "testuser@example.com",
-  "password": "TestPass123!"
-}
+```bash
+npm run build
 ```
 
-A successful login returns an access token and the user's safe profile information.
+## Git Information
 
-The backend rejects invalid credentials and does not return the stored password hash.
+**Repository:**  
+https://github.com/Aishwaryam990/infynux-task2-fullstack-auth
 
-### Retrieve User Profile
+**Development Branch:**  
+`task6/company-member-authentication`
 
-The `GET /api/users/me` endpoint retrieves the profile of the currently authenticated user.
+**Latest Commit:**  
+`097a15f86dfcc3a5270232202fc4b3a8f72addd3`
 
-The backend verifies the JWT access token and identifies the user from the token.
+## Future Enhancements
 
-### Update User Profile
+- Employee profile editing.
+- Employee account activation and deactivation.
+- Company announcements.
+- Posts and internal communication.
+- Employee notifications.
+- Advanced role-based permissions.
 
-The `PATCH /api/users/me` endpoint allows the authenticated user to update their profile name.
+## Conclusion
 
-The backend validates the submitted data before updating the user's record.
-
-## Validation and Error Handling
-
-The application handles:
-
-* Missing required fields
-* Invalid email addresses
-* Password confirmation mismatches during registration
-* Duplicate email addresses
-* Incorrect login credentials
-* Missing or invalid authentication tokens
-* Invalid profile update data
-* Loading and API error states
-
-## Testing
-
-The following scenarios were tested during development:
-
-* Successful registration
-* Duplicate registration rejection
-* Invalid input rejection
-* Successful login
-* Incorrect password rejection
-* Database storage of user records
-* Password hashing and exclusion of password hashes from API responses
-* Successful profile retrieval
-* Successful profile name update
-* Protected profile access using JWT authentication
-* Logout functionality
-* Successful backend production build
-* Successful frontend production build
-
-## Security Notes
-
-* Passwords are hashed using bcrypt before being stored.
-* JWT access tokens are generated after successful login.
-* Profile endpoints require valid authentication.
-* The authenticated user is identified using the verified JWT.
-* Database credentials and JWT secrets must be configured locally.
-* The actual `.env` file is excluded from version control.
-
-## Author
-
-**Aishwarya M.**
-
-Developed as part of the Infynux Solutions internship.
-
-## Repository
-
-[View the GitHub Repository](https://github.com/Aishwaryam990/infynux-task2-fullstack-auth)
+The project demonstrates a full-stack company employee management and authentication system using React, NestJS, PostgreSQL, and Prisma. It provides secure employee account creation, authentication, password management, and company-specific employee access.
