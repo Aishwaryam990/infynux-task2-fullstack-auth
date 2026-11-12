@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -71,6 +70,32 @@ export class PostsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async getOne(employee: any, id: string) {
+    this.validateEmployee(employee);
+
+    const post = await this.prisma.post.findFirst({
+      where: {
+        id,
+        companyId: employee.companyId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            loginId: true,
+          },
+        },
+      },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    return post;
   }
 
   async update(employee: any, id: string, content: string) {

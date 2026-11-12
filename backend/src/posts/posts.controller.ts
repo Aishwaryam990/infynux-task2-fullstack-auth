@@ -43,11 +43,17 @@ export class PostsController {
   ) {
     return this.postsService.getFeed(req.employee.companyId, Math.max(1, page));
   }
-
   @Get('my')
   myPosts(@Req() req: EmployeeRequest) {
     return this.postsService.getMyPosts(req.employee);
   }
+  @Get(':id')
+getOne(
+  @Req() req: EmployeeRequest,
+  @Param('id') id: string,
+) {
+  return this.postsService.getOne(req.employee, id);
+}
 
   @Patch(':id')
   update(
