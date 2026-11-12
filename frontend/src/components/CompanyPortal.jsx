@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useState } from 'react';
 import './CompanyPortal.css';
+import PostsSection from './PostsSection';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
@@ -59,6 +61,7 @@ export default function CompanyPortal({ onBack }) {
   const logout = useCallback(() => {
     sessionStorage.removeItem('companyAccessToken');
     sessionStorage.removeItem('employeeAccessToken');
+
     setCompanyToken('');
     setEmployeeToken('');
     setCompany(null);
@@ -77,6 +80,7 @@ export default function CompanyPortal({ onBack }) {
       const response = await fetch(`${API}/api/companies/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const data = await readResponse(response);
       setCompany(data.company);
     } catch (err) {
@@ -90,9 +94,11 @@ export default function CompanyPortal({ onBack }) {
 
     try {
       setMemberLoading(true);
+
       const response = await fetch(`${API}/api/companies/employees`, {
         headers: { Authorization: `Bearer ${companyToken}` },
       });
+
       const data = await readResponse(response);
       setEmployees(data.employees || []);
     } catch (err) {
@@ -107,6 +113,7 @@ export default function CompanyPortal({ onBack }) {
       const response = await fetch(`${API}/api/employees/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const data = await readResponse(response);
       setEmployee(data.employee);
       setMustChangePassword(false);
@@ -126,17 +133,24 @@ export default function CompanyPortal({ onBack }) {
   }, [employeeToken, mustChangePassword, loadEmployeeProfile]);
 
   useEffect(() => {
-    if (companyToken && activeTab === 'Members') loadEmployees();
+    if (companyToken && activeTab === 'Members') {
+      loadEmployees();
+    }
   }, [companyToken, activeTab, loadEmployees]);
 
   function handleChange(event) {
-    setForm((old) => ({ ...old, [event.target.name]: event.target.value }));
+    setForm((old) => ({
+      ...old,
+      [event.target.name]: event.target.value,
+    }));
+
     setError('');
     setSuccess('');
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError('');
     setSuccess('');
 
@@ -161,6 +175,7 @@ export default function CompanyPortal({ onBack }) {
         const data = await readResponse(response);
 
         sessionStorage.setItem('employeeAccessToken', data.accessToken);
+
         setEmployeeToken(data.accessToken);
         setMustChangePassword(data.mustChangePassword);
         setForm(initialForm);
@@ -198,6 +213,7 @@ export default function CompanyPortal({ onBack }) {
           setForm({ ...initialForm, email: payload.email });
         } else {
           sessionStorage.setItem('companyAccessToken', data.accessToken);
+
           setCompanyToken(data.accessToken);
           setCompany(data.company);
           setForm(initialForm);
@@ -210,13 +226,17 @@ export default function CompanyPortal({ onBack }) {
     }
   }
 
+  // Create employee and extract credentials from the API response.
   async function createEmployee(event) {
     event.preventDefault();
+
     setError('');
     setSuccess('');
     setCredentials(null);
 
     try {
+      setMemberLoading(true);
+
       const response = await fetch(`${API}/api/companies/employees`, {
         method: 'POST',
         headers: {
@@ -231,12 +251,62 @@ export default function CompanyPortal({ onBack }) {
 
       const data = await readResponse(response);
 
-      setCredentials(data.credentials);
-      setSuccess('Employee account created successfully.');
+      // Support credentials returned in different response formats.
+      const employeeData = data.employee || data;
+
+      const credentialData =
+        data.credentials ||
+        data.employee?.credentials ||
+        data;
+
+      const loginId =
+        credentialData.loginId ||
+        employeeData.loginId ||
+        data.loginId;
+
+      const temporaryPassword =
+        credentialData.temporaryPassword ||
+        credentialData.tempPassword ||
+        credentialData.password ||
+        data.temporaryPassword ||
+        data.tempPassword ||
+        data.password;
+
+      if (!loginId || !temporaryPassword) {
+        console.error('Employee creation API response:', data);
+
+        throw new Error(
+          'Employee account was created, but the backend did not return the temporary password. We need to fix the backend response.',
+        );
+      }
+
+      setCredentials({
+        loginId,
+        temporaryPassword,
+      });
+
+      setSuccess('Employee account created successfully. Save the credentials below.');
+
       setMemberForm({ name: '', email: '' });
-      loadEmployees();
+
+      await loadEmployees();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setMemberLoading(false);
+    }
+  }
+
+  async function copyCredentials() {
+    if (!credentials) return;
+
+    const text = `Login ID: ${credentials.loginId}\nTemporary Password: ${credentials.temporaryPassword}`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setSuccess('Employee credentials copied successfully!');
+    } catch {
+      setError('Unable to copy automatically. Please select and copy the credentials manually.');
     }
   }
 
@@ -258,7 +328,11 @@ export default function CompanyPortal({ onBack }) {
 
       setSuccess(data.message);
       setMustChangePassword(false);
-      setPasswordForm({ currentPassword: '', newPassword: '' });
+
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+      });
     } catch (err) {
       setError(err.message);
     }
@@ -270,7 +344,10 @@ export default function CompanyPortal({ onBack }) {
         <section className="company-auth-form-area">
           <div className="company-auth-form">
             <h2>Change Temporary Password</h2>
-            <p>You must create a new password before accessing your dashboard.</p>
+
+            <p>
+              You must create a new password before accessing your dashboard.
+            </p>
 
             {error && <div className="company-alert error-alert">{error}</div>}
             {success && <div className="company-alert">{success}</div>}
@@ -352,45 +429,62 @@ export default function CompanyPortal({ onBack }) {
               <span className="company-topbar-label">EMPLOYEE WORKSPACE</span>
               <h2>{activeTab}</h2>
             </div>
+
             <div className="company-avatar">
               {employee.name.charAt(0).toUpperCase()}
             </div>
           </header>
 
           {activeTab === 'Home' ? (
-            <section className="company-info-card">
-              <h2>Welcome, {employee.name}!</h2>
-              <div className="company-info-row">
-                <span>Employee name</span>
-                <strong>{employee.name}</strong>
-              </div>
-              <div className="company-info-row">
-                <span>Email</span>
-                <strong>{employee.email}</strong>
-              </div>
-              <div className="company-info-row">
-                <span>Login ID</span>
-                <strong>{employee.loginId}</strong>
-              </div>
-              <div className="company-info-row">
-                <span>Company</span>
-                <strong>{employee.company?.name}</strong>
-              </div>
-              <div className="company-info-row">
-                <span>Account status</span>
-                <strong>{employee.status}</strong>
-              </div>
-              <div className="company-info-row">
-                <span>Account created</span>
-                <strong>{new Date(employee.createdAt).toLocaleDateString()}</strong>
-              </div>
-            </section>
+            <>
+              <PostsSection
+                token={employeeToken}
+                mode="feed"
+                employee={employee}
+              />
+
+              <section className="company-info-card">
+                <h2>Welcome, {employee.name}!</h2>
+
+                <div className="company-info-row">
+                  <span>Employee name</span>
+                  <strong>{employee.name}</strong>
+                </div>
+
+                <div className="company-info-row">
+                  <span>Email</span>
+                  <strong>{employee.email}</strong>
+                </div>
+
+                <div className="company-info-row">
+                  <span>Login ID</span>
+                  <strong>{employee.loginId}</strong>
+                </div>
+
+                <div className="company-info-row">
+                  <span>Company</span>
+                  <strong>{employee.company?.name}</strong>
+                </div>
+
+                <div className="company-info-row">
+                  <span>Account status</span>
+                  <strong>{employee.status}</strong>
+                </div>
+
+                <div className="company-info-row">
+                  <span>Account created</span>
+                  <strong>
+                    {new Date(employee.createdAt).toLocaleDateString()}
+                  </strong>
+                </div>
+              </section>
+            </>
           ) : (
-            <section className="company-placeholder">
-              <h2>Posts</h2>
-              <p>Company posts will be available here in a future update.</p>
-              <span>No posts yet</span>
-            </section>
+            <PostsSection
+              token={employeeToken}
+              mode="mine"
+              employee={employee}
+            />
           )}
         </main>
       </div>
@@ -432,6 +526,7 @@ export default function CompanyPortal({ onBack }) {
               <span className="company-topbar-label">COMPANY WORKSPACE</span>
               <h2>{activeTab}</h2>
             </div>
+
             <div className="company-avatar">
               {(company?.name || 'C').charAt(0).toUpperCase()}
             </div>
@@ -443,25 +538,32 @@ export default function CompanyPortal({ onBack }) {
           {activeTab === 'Home' && (
             <section className="company-welcome">
               <div className="company-welcome-card">
-                <span className="company-eyebrow">WELCOME TO YOUR WORKSPACE</span>
+                <span className="company-eyebrow">
+                  WELCOME TO YOUR WORKSPACE
+                </span>
+
                 <h1>Hello, {company?.name || 'Company'}!</h1>
                 <p>Your company workspace is ready.</p>
               </div>
 
               <div className="company-info-card">
                 <h3>Company Profile</h3>
+
                 <div className="company-info-row">
                   <span>Company name</span>
                   <strong>{company?.name || 'Not available'}</strong>
                 </div>
+
                 <div className="company-info-row">
                   <span>Email address</span>
                   <strong>{company?.email || 'Not available'}</strong>
                 </div>
+
                 <div className="company-info-row">
                   <span>Company username</span>
                   <strong>{company?.username || 'Not available'}</strong>
                 </div>
+
                 <div className="company-info-row">
                   <span>Account created</span>
                   <strong>
@@ -477,11 +579,13 @@ export default function CompanyPortal({ onBack }) {
           {activeTab === 'Members' && (
             <section className="company-info-card employee-members">
               <h2>Company Members</h2>
+
               <p>Add employees and create their login credentials.</p>
 
               <form onSubmit={createEmployee}>
                 <div className="company-field">
                   <label>Employee name</label>
+
                   <input
                     required
                     minLength={2}
@@ -497,6 +601,7 @@ export default function CompanyPortal({ onBack }) {
 
                 <div className="company-field">
                   <label>Employee email</label>
+
                   <input
                     type="email"
                     required
@@ -509,17 +614,44 @@ export default function CompanyPortal({ onBack }) {
                   />
                 </div>
 
-                <button className="company-submit-button" type="submit">
-                  Add Employee
+                <button
+                  className="company-submit-button"
+                  type="submit"
+                  disabled={memberLoading}
+                >
+                  {memberLoading ? 'Creating...' : 'Add Employee'}
                 </button>
               </form>
 
               {credentials && (
                 <div className="employee-credentials">
-                  <h3>Employee account created!</h3>
-                  <p>Save these credentials. The temporary password is shown only now.</p>
-                  <p><strong>Login ID:</strong> {credentials.loginId}</p>
-                  <p><strong>Temporary password:</strong> {credentials.temporaryPassword}</p>
+                  <h3>Employee Account Created Successfully!</h3>
+
+                  <p>
+                    Save these credentials. The temporary password will
+                    only be displayed here once.
+                  </p>
+
+                  <p>
+                    <strong>Login ID:</strong>
+                    <br />
+                    <span>{credentials.loginId}</span>
+                  </p>
+
+                  <p>
+                    <strong>Temporary Password:</strong>
+                    <br />
+                    <span>{credentials.temporaryPassword}</span>
+                  </p>
+
+                  <button
+                    type="button"
+                    className="company-submit-button"
+                    onClick={copyCredentials}
+                  >
+                    Copy Credentials
+                  </button>
+
                   <button
                     type="button"
                     className="company-secondary-button"
@@ -547,6 +679,7 @@ export default function CompanyPortal({ onBack }) {
                         <th>Status</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {employees.map((item) => (
                         <tr key={item.id}>
@@ -564,21 +697,20 @@ export default function CompanyPortal({ onBack }) {
           )}
 
           {activeTab === 'Posts' && (
-            <section className="company-placeholder">
-              <h2>Posts</h2>
-              <p>Your company's posts area is ready for future development.</p>
-              <span>No posts yet</span>
-            </section>
+            <PostsSection token={companyToken} mode="admin" />
           )}
 
           {activeTab === 'Settings' && (
             <section className="company-info-card company-settings">
               <h3>Company Settings</h3>
+
               <p>Basic information saved in your company account.</p>
+
               <div className="company-info-row">
                 <span>Company</span>
                 <strong>{company?.name || 'Not available'}</strong>
               </div>
+
               <div className="company-info-row">
                 <span>Username</span>
                 <strong>{company?.username || 'Not available'}</strong>
@@ -600,18 +732,33 @@ export default function CompanyPortal({ onBack }) {
 
         <div className="company-intro-content">
           <span className="company-eyebrow">PRIVATE COMPANY PLATFORM</span>
-          <h1>One workspace.<br />Your company.</h1>
+
+          <h1>
+            One workspace.
+            <br />
+            Your company.
+          </h1>
+
           <p>
             A dedicated space for your company to manage its profile,
             employees and collaboration.
           </p>
-          <div className="company-feature">✓ Secure company authentication</div>
-          <div className="company-feature">✓ Protected employee accounts</div>
-          <div className="company-feature">✓ Company member management</div>
+
+          <div className="company-feature">
+            &#10003; Secure company authentication
+          </div>
+
+          <div className="company-feature">
+            &#10003; Protected employee accounts
+          </div>
+
+          <div className="company-feature">
+            &#10003; Company member management
+          </div>
         </div>
 
         <span className="company-intro-footer">
-          CompanySpace · Private Company Social Platform
+          CompanySpace &#183; Private Company Social Platform
         </span>
       </section>
 
@@ -622,7 +769,7 @@ export default function CompanyPortal({ onBack }) {
             className="company-back-button"
             onClick={onBack}
           >
-            ← Back
+            &#8592; Back
           </button>
 
           <h2>
@@ -647,6 +794,7 @@ export default function CompanyPortal({ onBack }) {
               <>
                 <div className="company-field">
                   <label>Company name</label>
+
                   <input
                     name="name"
                     value={form.name}
@@ -659,6 +807,7 @@ export default function CompanyPortal({ onBack }) {
 
                 <div className="company-field">
                   <label>Company username</label>
+
                   <input
                     name="username"
                     value={form.username}
@@ -674,20 +823,28 @@ export default function CompanyPortal({ onBack }) {
 
             <div className="company-field">
               <label>
-                {mode === 'employee-login' ? 'Employee Login ID' : 'Company email'}
+                {mode === 'employee-login'
+                  ? 'Employee Login ID'
+                  : 'Company email'}
               </label>
+
               <input
                 name={mode === 'employee-login' ? 'username' : 'email'}
                 type="text"
                 value={mode === 'employee-login' ? form.username : form.email}
                 onChange={handleChange}
                 required
-                placeholder={mode === 'employee-login' ? 'EMP-XXXXXXXXXX' : 'company@example.com'}
+                placeholder={
+                  mode === 'employee-login'
+                    ? 'EMP-XXXXXXXXXX'
+                    : 'company@example.com'
+                }
               />
             </div>
 
             <div className="company-field">
               <label>Password</label>
+
               <input
                 name="password"
                 type="password"
@@ -701,6 +858,7 @@ export default function CompanyPortal({ onBack }) {
             {mode === 'register' && (
               <div className="company-field">
                 <label>Confirm password</label>
+
                 <input
                   name="confirmPassword"
                   type="password"
@@ -729,41 +887,50 @@ export default function CompanyPortal({ onBack }) {
 
           <div className="employee-auth-links">
             {mode !== 'login' && (
-              <button type="button" onClick={() => {
-                setMode('login');
-                setForm(initialForm);
-                setError('');
-                setSuccess('');
-              }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setForm(initialForm);
+                  setError('');
+                  setSuccess('');
+                }}
+              >
                 Company Login
               </button>
             )}
 
             {mode !== 'register' && (
-              <button type="button" onClick={() => {
-                setMode('register');
-                setForm(initialForm);
-                setError('');
-                setSuccess('');
-              }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setForm(initialForm);
+                  setError('');
+                  setSuccess('');
+                }}
+              >
                 Register Company
               </button>
             )}
 
             {mode !== 'employee-login' && (
-              <button type="button" onClick={() => {
-                setMode('employee-login');
-                setForm(initialForm);
-                setError('');
-                setSuccess('');
-              }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('employee-login');
+                  setForm(initialForm);
+                  setError('');
+                  setSuccess('');
+                }}
+              >
                 Employee Login
               </button>
             )}
           </div>
 
           <p className="company-auth-footer">
-            Protected company access · Secure authentication
+            Protected company access &#183; Secure authentication
           </p>
         </div>
       </section>

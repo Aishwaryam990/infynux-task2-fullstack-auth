@@ -103,7 +103,8 @@ await expect(guard.canActivate(context)).rejects.toBeInstanceOf(
 it('accepts a valid token for an existing user', async () => {
 jwtMock.verifyAsync.mockResolvedValue({
 sub: 'user-1',
-email: '[old@example.com](mailto:old@example.com)',
+email: 'old@example.com',
+type: 'user',
 });
 
 prismaMock.user.findUnique.mockResolvedValue({
