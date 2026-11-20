@@ -15,6 +15,10 @@ import { EmployeeAuthService } from '../employees/employee-auth.service';
 import { EmployeeAuthGuard } from '../employees/employee-auth.guard';
 import { EmployeeManagementService } from '../employees/employee-management.service';
 
+import { PostsController } from '../posts/posts.controller';
+import { AdminPostsController } from '../posts/admin-posts.controller';
+import { PostsService } from '../posts/posts.service';
+
 @Module({
   imports: [
     PrismaModule,
@@ -32,6 +36,8 @@ import { EmployeeManagementService } from '../employees/employee-management.serv
     CompanyAuthController,
     CompanyController,
     EmployeeController,
+    PostsController,
+    AdminPostsController,
   ],
   providers: [
     CompanyAuthService,
@@ -40,6 +46,7 @@ import { EmployeeManagementService } from '../employees/employee-management.serv
     EmployeeAuthService,
     EmployeeAuthGuard,
     EmployeeManagementService,
+    PostsService,
   ],
 })
 export class CompanyAuthModule {}
