@@ -309,16 +309,10 @@ npm run build
 ## Git Information
 
 **Repository:**
-
 https://github.com/Aishwaryam990/infynux-task2-fullstack-auth
 
-**Current Development Branch:**
-
+**Development Branch:**
 `task8/post-engagement`
-
-**Latest Task 8 Commit:**
-
-`520e401`
 
 ## Conclusion
 
