@@ -1,12 +1,18 @@
-# Company Member Management & Employee Authentication
+# Company Member Management & Employee Authentication System
 
-A full-stack web application developed as part of the Infynux Solutions internship. The application allows company administrators to manage employees, generate employee login credentials, and provide secure employee authentication.
+A full-stack company management and private social networking application developed as part of the **Infynux Solutions Full Stack Development Internship**.
+
+The application allows companies to register, manage employees, provide secure employee authentication, and create a private social platform where employees can share posts, like posts, and interact through comments.
 
 ## Project Overview
 
-The system provides separate authentication and dashboard experiences for company administrators and employees.
+The system provides separate dashboards and authentication for company administrators and employees.
 
-Company administrators can register, log in, add employees, view employee records, and reset employee passwords. Employees can log in using their generated credentials and must change their temporary password during their first login.
+Company administrators can register, log in, manage company members, generate employee login credentials, and manage company posts.
+
+Employees can securely log in, manage their profiles, create posts, view their company's social feed, like and unlike posts, and interact with other employees through comments.
+
+All employee and social feed operations are restricted to the employee's respective company.
 
 ## Technologies Used
 
@@ -18,8 +24,8 @@ Company administrators can register, log in, add employees, view employee record
 - Vite
 
 ### Backend
-- NestJS
 - Node.js
+- NestJS
 - TypeScript
 - Prisma ORM
 - PostgreSQL
@@ -28,62 +34,94 @@ Company administrators can register, log in, add employees, view employee record
 
 ## Features
 
-### Company Administration
+### 1. Company Administration
 - Company registration and login.
-- Company dashboard.
-- Add new employees.
+- Dedicated company dashboard.
+- Add and manage employees.
 - Automatic employee Login ID generation.
 - Secure temporary password generation.
-- View employee list and account status.
+- View employee records and account status.
 - Reset employee passwords.
+- View and manage company posts.
 
-### Employee Authentication
+### 2. Employee Authentication
 - Employee login using Login ID and password.
 - Secure password verification using bcrypt.
 - Mandatory password change during first login.
 - JWT-based authentication.
-- Employee account status verification.
+- Protected employee routes.
+- Company-specific employee access.
 
-### Employee Dashboard
-- Employee name and email.
+### 3. Employee Dashboard
+- Display employee name and email.
 - Unique employee Login ID.
 - Company information.
 - Account status.
 - Account creation date.
-- Home and Posts placeholder sections.
+- Private company social feed.
 
-### Security
+### 4. Company Social Feed
+- Employees can create posts.
+- View posts shared by employees of the same company.
+- Edit their own posts.
+- Delete their own posts.
+- View post authors and timestamps.
+- Pagination for displaying posts.
+- Company-specific feed visibility.
+
+### 5. Post Engagement System
+- Employees can like and unlike posts.
+- Prevent duplicate likes from the same employee.
+- Display the total number of likes.
+- View employees who liked a post.
+- Add comments to posts.
+- Edit their own comments.
+- Delete their own comments.
+- Display comment counts and employee information.
+- Paginated comment retrieval.
+- Restrict post engagement to employees belonging to the same company.
+
+### 6. Security
 - Passwords stored as bcrypt hashes.
 - JWT-based authentication.
 - Protected company and employee routes.
-- Company-specific employee data isolation.
-- Employee authorization checks.
+- Role-based authorization.
+- Company-specific data isolation.
+- Employees can modify only their own posts and comments.
 - Server-side first-login password change enforcement.
+- Database constraints to prevent duplicate post likes.
 
 ## Project Structure
 
 ```text
 Task2/
-│
-├── backend/
-│   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
-│   │
-│   └── src/
-│       ├── companies/
-│       ├── employees/
-│       ├── prisma/
-│       └── main.ts
-│
-├── frontend/
-│   └── src/
-│       ├── components/
-│       │   ├── CompanyPortal.jsx
-│       │   └── CompanyPortal.css
-│       └── App.jsx
-│
-└── README.md
+|
+|-- backend/
+|   |-- prisma/
+|   |   |-- migrations/
+|   |   |-- schema.prisma
+|   |
+|   |-- src/
+|       |-- auth/
+|       |-- companies/
+|       |-- employees/
+|       |-- posts/
+|       |   |-- dto/
+|       |   |-- engagement/
+|       |-- prisma/
+|       |-- users/
+|       |-- main.ts
+|
+|-- frontend/
+|   |-- src/
+|       |-- components/
+|       |   |-- CompanyPortal.jsx
+|       |   |-- CompanyPortal.css
+|       |   |-- PostsSection.jsx
+|       |   |-- PostsSection.css
+|       |-- App.jsx
+|
+|-- README.md
 ```
 
 ## Installation and Setup
@@ -127,13 +165,19 @@ Apply database migrations:
 npx prisma migrate deploy
 ```
 
+Generate Prisma Client if required:
+
+```bash
+npx prisma generate
+```
+
 Start the backend:
 
 ```bash
 npm run start:dev
 ```
 
-Backend runs on:
+Backend runs at:
 
 `http://localhost:3000`
 
@@ -146,7 +190,7 @@ cd frontend
 npm install
 ```
 
-Create or configure the frontend `.env` file:
+Configure the frontend `.env` file:
 
 ```env
 VITE_API_URL=http://localhost:3000
@@ -158,7 +202,7 @@ Start the frontend:
 npm run dev
 ```
 
-Open the Vite URL displayed in the terminal.
+Open the local URL displayed in the terminal.
 
 ## API Endpoints
 
@@ -169,83 +213,111 @@ Open the Vite URL displayed in the terminal.
 | POST | `/api/companies/auth/register` | Register company |
 | POST | `/api/companies/auth/login` | Company login |
 | GET | `/api/companies/dashboard` | Company dashboard |
-| POST | `/api/companies/employees` | Create employee |
-| GET | `/api/companies/employees` | List employees |
-| POST | `/api/companies/employees/:loginId/reset-password` | Reset employee password |
 
 ### Employee APIs
 
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/employees/auth/login` | Employee login |
-| POST | `/api/employees/auth/change-password` | Change password |
+| POST | `/api/employees/auth/change-password` | Change employee password |
 | GET | `/api/employees/me` | Get employee profile |
+
+### Social Feed APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/posts` | View company feed |
+| POST | `/api/posts` | Create post |
+| GET | `/api/posts/my` | View own posts |
+| GET | `/api/posts/:id` | View individual post |
+| PATCH | `/api/posts/:id` | Edit own post |
+| DELETE | `/api/posts/:id` | Delete own post |
+
+### Post Engagement APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/posts/:postId/like` | Like a post |
+| DELETE | `/api/posts/:postId/like` | Unlike a post |
+| GET | `/api/posts/:postId/likes` | View employees who liked |
+| POST | `/api/posts/:postId/comments` | Add a comment |
+| GET | `/api/posts/:postId/comments` | View comments |
+| PATCH | `/api/posts/:postId/comments/:commentId` | Edit own comment |
+| DELETE | `/api/posts/:postId/comments/:commentId` | Delete own comment |
 
 Protected endpoints require the appropriate Bearer JWT token.
 
 ## Employee Account Workflow
 
-1. Company administrator logs in.
-2. Administrator opens Company Members.
+1. Company administrator registers and logs in.
+2. Administrator opens the Members section.
 3. Administrator enters employee name and email.
 4. System generates a unique Login ID and temporary password.
-5. Employee receives the generated credentials.
-6. Employee logs in using those credentials.
-7. System requires a password change during first login.
-8. Employee accesses their dashboard after successfully changing the password.
+5. Employee logs in using the generated credentials.
+6. Employee changes the temporary password.
+7. Employee accesses the dashboard.
+8. Employee can create posts and interact with other employees in the same company's social feed.
 
-Administrators can reset an employee's password when required. The newly generated temporary password is displayed once.
+## Post Engagement Workflow
+
+1. Employee A creates a post.
+2. Employee B views the post in the company feed.
+3. Employee B likes the post.
+4. The like count is updated.
+5. Employee B can unlike the post.
+6. Employees can add comments.
+7. Employees can edit or delete their own comments.
+8. The system prevents employees from interacting with posts belonging to other companies.
 
 ## Validation and Testing
 
-The following checks were completed:
+The following development checks were completed:
 
 | Test | Result |
 |---|---|
 | Backend production build | Passed |
 | Backend lint | Passed |
 | Frontend production build | Passed |
-| Employee account creation | Passed |
-| Employee login | Passed |
-| Temporary password change | Passed |
-| Employee dashboard | Passed |
-| Employee password reset | Passed |
+| Frontend lint | Passed |
+| Existing backend Jest tests | 11 passed |
+| Prisma database migrations | Up to date |
+| Company registration and login | Tested |
+| Employee creation and login | Tested |
+| Employee password change | Tested |
+| Social post creation | Tested |
+| Post liking and unliking | Tested |
+| Comment creation, editing and deletion | Tested |
+| Cross-company post access restriction | Tested |
 
-### Build Commands
+### Build and Test Commands
 
 Backend:
 
 ```bash
 npm run build
 npm run lint
+npm test
 ```
 
 Frontend:
 
 ```bash
+npm run lint
 npm run build
 ```
 
 ## Git Information
 
-**Repository:**  
+**Repository:**
 https://github.com/Aishwaryam990/infynux-task2-fullstack-auth
 
-**Development Branch:**  
-`task6/company-member-authentication`
-
-**Latest Commit:**  
-`097a15f86dfcc3a5270232202fc4b3a8f72addd3`
-
-## Future Enhancements
-
-- Employee profile editing.
-- Employee account activation and deactivation.
-- Company announcements.
-- Posts and internal communication.
-- Employee notifications.
-- Advanced role-based permissions.
+**Development Branch:**
+`task8/post-engagement`
 
 ## Conclusion
 
-The project demonstrates a full-stack company employee management and authentication system using React, NestJS, PostgreSQL, and Prisma. It provides secure employee account creation, authentication, password management, and company-specific employee access.
+The project provides a secure company employee management and private social networking platform.
+
+It combines company administration, employee authentication, social feed management, and post engagement features using React, NestJS, Prisma, and PostgreSQL.
+
+The application demonstrates full-stack development concepts, secure authentication, database relationships, API development, authorization, and company-level data isolation.
