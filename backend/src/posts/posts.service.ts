@@ -17,45 +17,91 @@ export class PostsService {
     }
   }
 
+  private engagementInclude() {
+    return {
+      author: {
+        select: { id: true, name: true, loginId: true },
+      },
+      likes: {
+        include: {
+          employee: {
+            select: {
+              id: true,
+              name: true,
+              loginId: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' as const },
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+    };
+  }
+
+  private formatPost(post: any, employeeId?: string) {
+    return {
+      ...post,
+      likeCount: post._count?.likes ?? 0,
+      commentCount: post._count?.comments ?? 0,
+      isLiked: employeeId
+        ? post.likes?.some(
+            (like: any) => like.employeeId === employeeId,
+          ) ?? false
+        : false,
+      likedBy: (post.likes ?? []).map((like: any) => ({
+        id: like.employee.id,
+        name: like.employee.name,
+        loginId: like.employee.loginId,
+        likedAt: like.createdAt,
+      })),
+    };
+  }
+
   async create(employee: any, content: string) {
     this.validateEmployee(employee);
 
-    return this.prisma.post.create({
+    const post = await this.prisma.post.create({
       data: {
         content,
         authorId: employee.id,
         companyId: employee.companyId,
       },
-      include: {
-        author: {
-          select: { id: true, name: true, loginId: true },
-        },
-      },
+      include: this.engagementInclude(),
     });
+
+    return this.formatPost(post, employee.id);
   }
 
-  async getFeed(companyId: string, page = 1) {
+  async getFeed(employee: any, page = 1) {
+    this.validateEmployee(employee);
+
     const limit = 10;
+    const safePage = Math.max(1, page);
 
     const [posts, total] = await Promise.all([
       this.prisma.post.findMany({
-        where: { companyId },
-        include: {
-          author: {
-            select: { id: true, name: true, loginId: true },
-          },
-        },
+        where: { companyId: employee.companyId },
+        include: this.engagementInclude(),
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
+        skip: (safePage - 1) * limit,
         take: limit,
       }),
-      this.prisma.post.count({ where: { companyId } }),
+      this.prisma.post.count({
+        where: { companyId: employee.companyId },
+      }),
     ]);
 
     return {
-      posts,
+      posts: posts.map((post) =>
+        this.formatPost(post, employee.id),
+      ),
       total,
-      page,
+      page: safePage,
       totalPages: Math.ceil(total / limit),
     };
   }
@@ -63,13 +109,18 @@ export class PostsService {
   async getMyPosts(employee: any) {
     this.validateEmployee(employee);
 
-    return this.prisma.post.findMany({
+    const posts = await this.prisma.post.findMany({
       where: {
         authorId: employee.id,
         companyId: employee.companyId,
       },
+      include: this.engagementInclude(),
       orderBy: { createdAt: 'desc' },
     });
+
+    return posts.map((post) =>
+      this.formatPost(post, employee.id),
+    );
   }
 
   async getOne(employee: any, id: string) {
@@ -80,22 +131,14 @@ export class PostsService {
         id,
         companyId: employee.companyId,
       },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            loginId: true,
-          },
-        },
-      },
+      include: this.engagementInclude(),
     });
 
     if (!post) {
       throw new NotFoundException('Post not found');
     }
 
-    return post;
+    return this.formatPost(post, employee.id);
   }
 
   async update(employee: any, id: string, content: string) {
@@ -113,10 +156,13 @@ export class PostsService {
       throw new NotFoundException('Post not found or access denied');
     }
 
-    return this.prisma.post.update({
+    const updated = await this.prisma.post.update({
       where: { id },
       data: { content },
+      include: this.engagementInclude(),
     });
+
+    return this.formatPost(updated, employee.id);
   }
 
   async deleteOwn(employee: any, id: string) {
@@ -140,15 +186,27 @@ export class PostsService {
   }
 
   async adminFeed(companyId: string) {
-    return this.prisma.post.findMany({
+    const posts = await this.prisma.post.findMany({
       where: { companyId },
       include: {
         author: {
           select: { id: true, name: true, email: true },
         },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    return posts.map((post) => ({
+      ...post,
+      likeCount: post._count.likes,
+      commentCount: post._count.comments,
+    }));
   }
 
   async adminDelete(companyId: string, id: string) {

@@ -41,8 +41,10 @@ model Employee {
   mustChangePassword Boolean  @default(true) @map("must_change_password")
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  posts   Post[]
+  company  Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  posts    Post[]
+  likes    PostLike[]
+  comments Comment[]
 
   @@unique([companyId, email])
   @@index([companyId])
@@ -57,10 +59,43 @@ model Post {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  author  Employee @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  company Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  author   Employee   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  company  Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  likes    PostLike[]
+  comments Comment[]
 
   @@index([companyId, createdAt])
   @@index([authorId])
   @@map("posts")
+}
+
+model PostLike {
+  id         String   @id @default(uuid()) @db.Uuid
+  postId     String   @map("post_id") @db.Uuid
+  employeeId String   @map("employee_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, employeeId])
+  @@index([postId])
+  @@index([employeeId])
+  @@map("post_likes")
+}
+
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  content    String   @db.VarChar(1000)
+  postId     String   @map("post_id") @db.Uuid
+  employeeId String   @map("employee_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([employeeId])
+  @@map("comments")
 }

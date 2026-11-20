@@ -37,12 +37,12 @@ export class PostsController {
   }
 
   @Get()
-  feed(
-    @Req() req: EmployeeRequest,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  ) {
-    return this.postsService.getFeed(req.employee.companyId, Math.max(1, page));
-  }
+feed(
+  @Req() req: EmployeeRequest,
+  @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+) {
+  return this.postsService.getFeed(req.employee, Math.max(1, page));
+}
   @Get('my')
   myPosts(@Req() req: EmployeeRequest) {
     return this.postsService.getMyPosts(req.employee);

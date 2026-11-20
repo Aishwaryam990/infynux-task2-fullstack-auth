@@ -1,3 +1,6 @@
+import { EngagementController } from '../posts/engagement/engagement.controller';
+import { EngagementService } from '../posts/engagement/engagement.service';
+
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -19,6 +22,7 @@ import { PostsController } from '../posts/posts.controller';
 import { AdminPostsController } from '../posts/admin-posts.controller';
 import { PostsService } from '../posts/posts.service';
 
+
 @Module({
   imports: [
     PrismaModule,
@@ -33,20 +37,22 @@ import { PostsService } from '../posts/posts.service';
     }),
   ],
   controllers: [
-    CompanyAuthController,
-    CompanyController,
-    EmployeeController,
-    PostsController,
-    AdminPostsController,
-  ],
+  CompanyAuthController,
+  CompanyController,
+  EmployeeController,
+  PostsController,
+  AdminPostsController,
+  EngagementController,
+],
   providers: [
-    CompanyAuthService,
-    CompanyAuthGuard,
-    CompanyService,
-    EmployeeAuthService,
-    EmployeeAuthGuard,
-    EmployeeManagementService,
-    PostsService,
-  ],
+  CompanyAuthService,
+  CompanyAuthGuard,
+  CompanyService,
+  EmployeeAuthService,
+  EmployeeAuthGuard,
+  EmployeeManagementService,
+  PostsService,
+  EngagementService,
+],
 })
 export class CompanyAuthModule {}
